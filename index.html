@@ -625,27 +625,12 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
 // STATE
 // ══════════════════════════════════════════════════════════
 const SK = 'distri_fact_v3';
-const CFG_KEY = 'distri_cfg_v1';
 let st = { proveedores: [], facturas: [], osPendientes: [], historico: [] };
 let filtFact = 'todos', filtProv = 'todos', sortFechaDir = 'desc';
 let editingFactId = null;
 
 
 
-// ── CONFIG ────────────────────────────────────────────────
-
-
-
-
-// ── SYNC STATUS ───────────────────────────────────────────
-function  {
-  
-  const txt = document.getElementById('syncText');
-  
-  txt.textContent = text;
-}
-
-// ── LOAD (Sheets → local) ─────────────────────────────────
 // ── LOCAL STORAGE ONLY ──────────────────────────────────
 function saveLocal() {
   try { localStorage.setItem(SK, JSON.stringify(st)); } catch(e) {}
