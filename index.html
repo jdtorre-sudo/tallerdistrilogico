@@ -636,7 +636,18 @@ function saveLocal() {
   try { localStorage.setItem(SK, JSON.stringify(st)); } catch(e) {}
 }
 function loadLocal() {
-  try { const d = localStorage.getItem(SK); if(d) { st = JSON.parse(d); return true; } } catch(e) {}
+  try {
+    const d = localStorage.getItem(SK);
+    if (d) {
+      st = JSON.parse(d);
+      // Ensure all arrays exist (backward compat)
+      if (!Array.isArray(st.facturas))     st.facturas     = [];
+      if (!Array.isArray(st.osPendientes)) st.osPendientes = [];
+      if (!Array.isArray(st.proveedores))  st.proveedores  = [];
+      if (!Array.isArray(st.historico))    st.historico    = [];
+      return true;
+    }
+  } catch(e) { console.error('loadLocal:', e); }
   return false;
 }
 async function load() {
@@ -726,7 +737,7 @@ function importReport(event) {
         st.facturas.push(f); added++;
       });
 
-      save(); renderAll();
+      save(); renderAll(); updateTabCounts();
       alert(`✅ Importación completa:\n• ${added} facturas nuevas agregadas\n• ${review} requieren revisión (proveedor compartido o no reconocido)\n• ${skipped} duplicadas omitidas`);
     } catch(err) {
       alert('Error al leer el archivo:\n' + err.message);
@@ -995,17 +1006,24 @@ const ESTADO_META = {
 };
 
 function renderAll() {
-  renderDashboard();
-  renderFacturas();
-  renderOS();
-  renderProveedores();
+  try { renderDashboard(); }    catch(e) { console.error('renderDashboard:', e); }
+  try { renderFacturas(); }     catch(e) { console.error('renderFacturas:', e); }
+  try { renderOS(); }           catch(e) { console.error('renderOS:', e); }
+  try { renderProveedores(); }  catch(e) { console.error('renderProveedores:', e); }
+  try { renderHistorico(); }    catch(e) { console.error('renderHistorico:', e); }
   updateTabCounts();
   updateProvDatalist();
 }
 
 function updateTabCounts() {
-  document.getElementById('cnt-tab-fact').textContent = st.facturas.filter(f=>f.estado!=='excluido').length;
-  document.getElementById('cnt-tab-os').textContent = st.osPendientes.filter(o=>!o.factId).length;
+  try {
+    const cntFact = document.getElementById('cnt-tab-fact');
+    const cntOS   = document.getElementById('cnt-tab-os');
+    const nFact   = (st.facturas||[]).filter(f=>f.estado!=='excluido').length;
+    const nOS     = (st.osPendientes||[]).filter(o=>!o.factId).length;
+    if (cntFact) cntFact.textContent = nFact;
+    if (cntOS)   cntOS.textContent   = nOS;
+  } catch(e) { console.error('updateTabCounts:', e); }
 }
 
 function renderDashboard() {
