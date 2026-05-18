@@ -155,22 +155,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
 .toast.warn{background:#78350f;color:#fcd34d;border:1px solid #92400e}
 @keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* SYNC STATUS */
-.sync-bar{display:flex;align-items:center;gap:8px;font-size:11px;font-family:var(--mono)}
-.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.sync-dot.ok{background:var(--green)}
-.sync-dot.syncing{background:var(--yellow);animation:pulse 1s infinite}
-.sync-dot.error{background:var(--red)}
-.sync-dot.offline{background:var(--dim)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.sync-text{color:var(--muted)}
 
-/* CONFIG PANEL */
-.cfg-panel{background:var(--s2);border-bottom:1px solid var(--border);padding:10px 24px;display:none;align-items:center;gap:12px}
-.cfg-panel.open{display:flex}
-.cfg-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 12px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none}
-.cfg-input:focus{border-color:var(--accent)}
-.cfg-label{font-size:11px;color:var(--muted);white-space:nowrap}
 
 /* responsive */
 @media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}
@@ -195,13 +180,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
     <button class="ntab" onclick="showPage('historico',this)">📜 Histórico</button>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <div class="sync-bar">
-      <div class="sync-dot offline" id="syncDot"></div>
-      <span class="sync-text" id="syncText">Sin conexión a Sheets</span>
-    </div>
     <div class="nav-actions">
-      <button class="btn btn-ghost btn-sm" onclick="refreshFromSheets()" title="Actualizar desde Sheets">🔄</button>
-      <button class="btn btn-ghost btn-sm" onclick="toggleConfig()" title="Configurar Google Sheets">⚙</button>
       <label class="btn btn-ghost" style="cursor:pointer">
         ⬆ Importar reporte
         <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="importReport(event)">
@@ -309,13 +288,6 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
   </div>
 </div>
 
-<!-- CONFIG PANEL -->
-<div class="cfg-panel" id="cfgPanel">
-  <span class="cfg-label">🔗 Web App URL:</span>
-  <input class="cfg-input" id="cfgUrl" placeholder="https://script.google.com/macros/s/XXXX/exec" oninput="saveConfig()">
-  <button class="btn btn-accent btn-sm" onclick="testConnection()">Probar conexión</button>
-  <button class="btn btn-ghost btn-sm" onclick="toggleConfig()">Cerrar</button>
-</div>
 
 <!-- ═══════════════════════════════════════════════════════
      PAGE: DASHBOARD
@@ -565,15 +537,23 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
     </div>
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar" style="flex-wrap:wrap">
     <div class="filter-group">
       <button class="ftab active" onclick="setFiltHist('todos',this)">Todos</button>
-      <button class="ftab" onclick="setFiltHist('clasificacion',this)">✓ Clasificaciones</button>
+      <button class="ftab" onclick="setFiltHist('clasificacion',this)">✓ Clasificadas</button>
       <button class="ftab" onclick="setFiltHist('oc',this)">📄 OC emitidas</button>
       <button class="ftab" onclick="setFiltHist('os',this)">📋 OS registradas</button>
       <button class="ftab" onclick="setFiltHist('exclusion',this)">✕ Exclusiones</button>
+      <button class="ftab" onclick="setFiltHist('vinculacion',this)">🔗 Vinculaciones</button>
     </div>
     <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." oninput="renderHistorico()">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;color:var(--muted)">Desde</span>
+      <input type="date" id="filtHistDesde" class="search" style="width:140px" onchange="renderHistorico()">
+      <span style="font-size:11px;color:var(--muted)">Hasta</span>
+      <input type="date" id="filtHistHasta" class="search" style="width:140px" onchange="renderHistorico()">
+      <button class="btn btn-ghost btn-sm" onclick="clearDatesHist()">✕</button>
+    </div>
   </div>
 
   <div class="tbl-wrap">
@@ -649,186 +629,36 @@ const CFG_KEY = 'distri_cfg_v1';
 let st = { proveedores: [], facturas: [], osPendientes: [], historico: [] };
 let filtFact = 'todos', filtProv = 'todos', sortFechaDir = 'desc';
 let editingFactId = null;
-let syncTimeout = null;
-let webAppUrl = '';
+
+
 
 // ── CONFIG ────────────────────────────────────────────────
-function loadConfig() {
-  try { const c = localStorage.getItem(CFG_KEY); if(c) webAppUrl = JSON.parse(c).url||''; } catch(e){}
-  if (webAppUrl) document.getElementById('cfgUrl').value = webAppUrl;
-}
-function saveConfig() {
-  webAppUrl = document.getElementById('cfgUrl').value.trim();
-  try { localStorage.setItem(CFG_KEY, JSON.stringify({url: webAppUrl})); } catch(e){}
-}
-function toggleConfig() {
-  document.getElementById('cfgPanel').classList.toggle('open');
-}
+
+
+
 
 // ── SYNC STATUS ───────────────────────────────────────────
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('syncDot');
+function  {
+  
   const txt = document.getElementById('syncText');
-  dot.className = 'sync-dot ' + state;
+  
   txt.textContent = text;
 }
 
 // ── LOAD (Sheets → local) ─────────────────────────────────
-// ══════════════════════════════════════════════════════════
-// SYNC ARCHITECTURE:
-// - localStorage es la fuente de verdad SIEMPRE
-// - Sheets es backup/compartido — NUNCA sobreescribe local
-// - GET de Sheets solo agrega datos que no existen local
-// - POST a Sheets es async — nunca bloquea ni modifica st
-// ══════════════════════════════════════════════════════════
-
+// ── LOCAL STORAGE ONLY ──────────────────────────────────
 function saveLocal() {
   try { localStorage.setItem(SK, JSON.stringify(st)); } catch(e) {}
 }
-
 function loadLocal() {
-  try {
-    const d = localStorage.getItem(SK);
-    if (d) { st = JSON.parse(d); return true; }
-  } catch(e) {}
+  try { const d = localStorage.getItem(SK); if(d) { st = JSON.parse(d); return true; } } catch(e) {}
   return false;
 }
-
-// Merge Sheets data INTO local — local always wins for existing IDs
-function mergeFromSheets(sheetsData) {
-  if (!sheetsData) return;
-
-  if (sheetsData.facturas && Array.isArray(sheetsData.facturas)) {
-    const localIds = new Set(st.facturas.map(f => f.id));
-    // Add only IDs we don't have locally (new entries from other users)
-    const newFromSheets = sheetsData.facturas.filter(f => !localIds.has(f.id));
-    if (newFromSheets.length > 0) {
-      st.facturas = [...st.facturas, ...newFromSheets];
-      saveLocal();
-    }
-  }
-  if (sheetsData.osPendientes && Array.isArray(sheetsData.osPendientes)) {
-    const localIds = new Set(st.osPendientes.map(o => o.id));
-    const newFromSheets = sheetsData.osPendientes.filter(o => !localIds.has(o.id));
-    if (newFromSheets.length > 0) {
-      st.osPendientes = [...st.osPendientes, ...newFromSheets];
-      saveLocal();
-    }
-  }
-  if (sheetsData.proveedores && Array.isArray(sheetsData.proveedores)) {
-    const localIds = new Set(st.proveedores.map(p => p.id));
-    const newFromSheets = sheetsData.proveedores.filter(p => !localIds.has(p.id));
-    if (newFromSheets.length > 0) {
-      st.proveedores = [...st.proveedores, ...newFromSheets];
-      saveLocal();
-    }
-  }
-}
-
 async function load() {
-  loadConfig();
-  loadLocal();   // Load from localStorage first — instant
-  renderAll();   // Render immediately with local data
-
-  if (!webAppUrl) {
-    setSyncStatus('offline', 'Sin conexión a Sheets — configura con ⚙');
-    return;
-  }
-
-  // Background fetch from Sheets — only ADDS new data, never removes
-  setSyncStatus('syncing', 'Verificando Sheets...');
-  try {
-    const res = await fetch(webAppUrl, { method: 'GET', redirect: 'follow', mode: 'cors' });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    mergeFromSheets(data);    // Only adds, never overwrites
-    const ts = data.last_updated ? new Date(data.last_updated).toLocaleString('es-EC') : '';
-    setSyncStatus('ok', 'Sheets OK · ' + ts);
-    renderAll();
-  } catch(err) {
-    // GET failed — local data untouched, user can keep working
-    setSyncStatus('offline', 'Modo local — descarga Excel para compartir');
-  }
+  loadLocal();
+  renderAll();
 }
-
-// Manual refresh from Sheets (button)
-async function refreshFromSheets() {
-  if (!webAppUrl) { alert('Configura la URL de Sheets primero (⚙)'); return; }
-  setSyncStatus('syncing', 'Actualizando desde Sheets...');
-  try {
-    const res = await fetch(webAppUrl, { method: 'GET', redirect: 'follow' });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    mergeFromSheets(data);
-    const ts = data.last_updated ? new Date(data.last_updated).toLocaleString('es-EC') : '';
-    setSyncStatus('ok', 'Actualizado · ' + ts);
-    renderAll();
-    showToast('✓ Datos actualizados desde Sheets', 'ok');
-  } catch(err) {
-    setSyncStatus('error', 'No se pudo conectar con Sheets');
-    showToast('Sin conexión a Sheets — datos locales intactos', 'warn');
-  }
-}
-
-// save() = save local IMMEDIATELY + async POST to Sheets (fire and forget)
-function save() {
-  saveLocal();                              // Synchronous — never fails visibly
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(pushToSheets, 1200);  // Debounced POST
-}
-
-async function pushToSheets() {
-  if (!webAppUrl) return;
-  setSyncStatus('syncing', 'Guardando en Sheets...');
-  const payload = {
-    facturas:     st.facturas.filter(f => f.estado !== 'revision'),
-    osPendientes: st.osPendientes,
-    proveedores:  st.proveedores
-  };
-  let attempts = 0;
-  while (attempts < 4) {
-    try {
-      // POST via GET with encoded body to avoid CORS preflight
-      const encoded = encodeURIComponent(JSON.stringify(payload));
-      const proxyUrl = webAppUrl + '?data=' + encoded;
-      const res = await fetch(proxyUrl, { method: 'GET', redirect: 'follow' });
-      const text = await res.text();
-      const data = JSON.parse(text);
-      if (data.error) throw new Error(data.error);
-      const ts = data.saved_at ? new Date(data.saved_at).toLocaleString('es-EC') : '';
-      setSyncStatus('ok', 'Guardado · ' + ts);
-      return;
-    } catch(err) {
-      attempts++;
-      if (attempts < 4) {
-        setSyncStatus('syncing', `Reintentando (${attempts}/3)...`);
-        await new Promise(r => setTimeout(r, 2000 * attempts));
-      } else {
-        setSyncStatus('error', 'Sheets sin conexión · guardado localmente ✓');
-      }
-    }
-  }
-}
-
-async function testConnection() {
-  if (!webAppUrl) { alert('Pega la URL del Web App primero'); return; }
-  setSyncStatus('syncing', 'Probando conexión...');
-  try {
-    const res = await fetch(webAppUrl, { method: 'GET', redirect: 'follow' });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    setSyncStatus('ok', '✓ Conexión exitosa con Google Sheets');
-    alert('✅ Conexión exitosa. El dashboard está vinculado al Google Sheet.');
-  } catch(err) {
-    setSyncStatus('error', 'Error: ' + err.message);
-    alert('❌ No se pudo conectar:\n' + err.message + '\n\nVerifica que la URL es correcta y el Web App está publicado como "Anyone".');
-  }
-}
-
-// Page visibility — refresh from Sheets when user returns to tab
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && webAppUrl) refreshFromSheets();
-});
+function save() { saveLocal(); }
 
 function showToast(msg, type='ok') {
   const old = document.getElementById('toast-el');
@@ -1302,7 +1132,7 @@ async function importZIP(event) {
   if (!file) return;
   event.target.value = '';
 
-  setSyncStatus('syncing', 'Leyendo ZIP...');
+  
 
   try {
     const zip = await JSZip.loadAsync(file);
@@ -1312,12 +1142,12 @@ async function importZIP(event) {
 
     if (!xmlFiles.length) {
       alert('No se encontraron archivos XML dentro del ZIP.');
-      setSyncStatus('ok', 'ZIP sin XMLs');
+      
       return;
     }
 
     let matched = 0, notFound = 0, total = xmlFiles.length;
-    setSyncStatus('syncing', `Procesando ${total} XMLs...`);
+    
 
     for (const xmlName of xmlFiles) {
       try {
@@ -1347,7 +1177,7 @@ async function importZIP(event) {
     }
 
     save();
-    setSyncStatus('ok', `ZIP procesado · ${matched} facturas actualizadas`);
+    
     renderAll();
     alert(
       `✅ ZIP procesado:\n` +
@@ -1356,7 +1186,7 @@ async function importZIP(event) {
       `• ${notFound} sin coincidencia en el sistema`
     );
   } catch(err) {
-    setSyncStatus('error', 'Error al leer ZIP');
+    
     alert('Error al leer el ZIP:\n' + err.message);
   }
 }
@@ -1523,6 +1353,20 @@ function logOSHistorico(os, detalle) {
   });
 }
 
+
+function clearDatesFact() {
+  const d = document.getElementById('filtFechaDesde');
+  const h = document.getElementById('filtFechaHasta');
+  if(d) d.value = ''; if(h) h.value = '';
+  renderFacturas();
+}
+function clearDatesHist() {
+  const d = document.getElementById('filtHistDesde');
+  const h = document.getElementById('filtHistHasta');
+  if(d) d.value = ''; if(h) h.value = '';
+  renderHistorico();
+}
+
 function setFiltHist(f, btn) {
   filtHist = f;
   document.querySelectorAll('#page-historico .ftab').forEach(t => t.classList.remove('active'));
@@ -1533,11 +1377,16 @@ function setFiltHist(f, btn) {
 function renderHistorico() {
   if (!st.historico) st.historico = [];
   const q = (document.getElementById('searchHist')||{}).value || '';
+  const hDesde = (document.getElementById('filtHistDesde')||{}).value || '';
+  const hHasta = (document.getElementById('filtHistHasta')||{}).value || '';
   const rows = st.historico.filter(h => {
     const matchF = filtHist === 'todos' || h.tipo === filtHist;
     const matchQ = !q || [h.proveedor, h.nFact, h.nOS, h.nOC, h.detalle]
       .some(v => (v||'').toLowerCase().includes(q.toLowerCase()));
-    return matchF && matchQ;
+    const hDate = h.ts ? h.ts.slice(0,10) : '';
+    const matchDesde = !hDesde || hDate >= hDesde;
+    const matchHasta = !hHasta || hDate <= hHasta;
+    return matchF && matchQ && matchDesde && matchHasta;
   });
 
   // Update cards
@@ -1657,6 +1506,8 @@ function toggleSortDate() {
 
 function renderFacturas() {
   const q = (document.getElementById('searchFact')||{}).value||'';
+  const desde = (document.getElementById('filtFechaDesde')||{}).value || '';
+  const hasta = (document.getElementById('filtFechaHasta')||{}).value || '';
   const rows = st.facturas.filter(f => {
     const dias = diasDesdeEmision(f.fecha);
     const isVencido = dias !== null && dias >= 3 && f.estado !== 'completo' && f.estado !== 'excluido';
@@ -1664,7 +1515,9 @@ function renderFacturas() {
       : filtFact==='vencido' ? isVencido
       : f.estado===filtFact;
     const matchQ = !q || [f.nombre,f.nFact,f.ruc,f.nOS,f.nOC,f.obs].some(v=>(v||'').toLowerCase().includes(q.toLowerCase()));
-    return matchF && matchQ;
+    const matchDesde = !desde || (f.fecha && f.fecha >= desde);
+    const matchHasta = !hasta || (f.fecha && f.fecha <= hasta);
+    return matchF && matchQ && matchDesde && matchHasta;
   });
   // Sort by fecha
   rows.sort((a, b) => {
