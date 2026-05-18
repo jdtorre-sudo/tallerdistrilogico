@@ -679,7 +679,7 @@ async function load() {
   // Background fetch from Sheets — only ADDS new data, never removes
   setSyncStatus('syncing', 'Verificando Sheets...');
   try {
-    const res = await fetch(webAppUrl, { method: 'GET', redirect: 'follow' });
+    const res = await fetch(webAppUrl, { method: 'GET', redirect: 'follow', mode: 'cors' });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     mergeFromSheets(data);    // Only adds, never overwrites
@@ -729,16 +729,16 @@ async function pushToSheets() {
   let attempts = 0;
   while (attempts < 4) {
     try {
-      const res = await fetch(webAppUrl, {
-        method: 'POST', redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+      // POST via GET with encoded body to avoid CORS preflight
+      const encoded = encodeURIComponent(JSON.stringify(payload));
+      const proxyUrl = webAppUrl + '?data=' + encoded;
+      const res = await fetch(proxyUrl, { method: 'GET', redirect: 'follow' });
+      const text = await res.text();
+      const data = JSON.parse(text);
       if (data.error) throw new Error(data.error);
       const ts = data.saved_at ? new Date(data.saved_at).toLocaleString('es-EC') : '';
       setSyncStatus('ok', 'Guardado · ' + ts);
-      return;   // Success — exit
+      return;
     } catch(err) {
       attempts++;
       if (attempts < 4) {
