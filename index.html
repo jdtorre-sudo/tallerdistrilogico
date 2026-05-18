@@ -192,6 +192,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
     <button class="ntab" onclick="showPage('facturas',this)">🧾 Facturas <span class="badge-cnt" id="cnt-tab-fact">0</span></button>
     <button class="ntab" onclick="showPage('os',this)">📋 OS Pendientes <span class="badge-cnt" id="cnt-tab-os">0</span></button>
     <button class="ntab" onclick="showPage('proveedores',this)">🏢 Proveedores</button>
+    <button class="ntab" onclick="showPage('historico',this)">📜 Histórico</button>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
     <div class="sync-bar">
@@ -535,6 +536,64 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE: HISTÓRICO
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-historico">
+  <div class="alert alert-info" style="display:flex;align-items:center;justify-content:space-between">
+    <span>📜 Registro cronológico de todas las transacciones realizadas en el sistema.</span>
+    <button class="btn btn-green btn-sm" onclick="exportHistorico()">⬇ Descargar Excel</button>
+  </div>
+
+  <div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+    <div class="card c-ok">
+      <div class="card-lbl">Clasificadas</div>
+      <div class="card-val" id="h-clasificadas">0</div>
+    </div>
+    <div class="card c-poc">
+      <div class="card-lbl">OC emitidas</div>
+      <div class="card-val" id="h-oc">0</div>
+    </div>
+    <div class="card c-pf">
+      <div class="card-lbl">OS registradas</div>
+      <div class="card-val" id="h-os">0</div>
+    </div>
+    <div class="card c-all">
+      <div class="card-lbl">Total movimientos</div>
+      <div class="card-val" id="h-total">0</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="filter-group">
+      <button class="ftab active" onclick="setFiltHist('todos',this)">Todos</button>
+      <button class="ftab" onclick="setFiltHist('clasificacion',this)">✓ Clasificaciones</button>
+      <button class="ftab" onclick="setFiltHist('oc',this)">📄 OC emitidas</button>
+      <button class="ftab" onclick="setFiltHist('os',this)">📋 OS registradas</button>
+      <button class="ftab" onclick="setFiltHist('exclusion',this)">✕ Exclusiones</button>
+    </div>
+    <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." oninput="renderHistorico()">
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Fecha y hora</th>
+        <th>Tipo</th>
+        <th>N° Documento</th>
+        <th>Proveedor</th>
+        <th class="right">Monto</th>
+        <th>N° OS</th>
+        <th>N° OC</th>
+        <th>Detalle</th>
+      </tr></thead>
+      <tbody id="tbl-historico"></tbody>
+    </table>
+    <div class="empty" id="empty-historico"><div class="ico">📜</div><p>Aún no hay transacciones registradas</p></div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════
      MODAL: VINCULAR OS → FACTURA
 ══════════════════════════════════════════════════════════ -->
@@ -587,7 +646,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
 // ══════════════════════════════════════════════════════════
 const SK = 'distri_fact_v3';
 const CFG_KEY = 'distri_cfg_v1';
-let st = { proveedores: [], facturas: [], osPendientes: [] };
+let st = { proveedores: [], facturas: [], osPendientes: [], historico: [] };
 let filtFact = 'todos', filtProv = 'todos', sortFechaDir = 'desc';
 let editingFactId = null;
 let syncTimeout = null;
@@ -688,7 +747,7 @@ async function load() {
     renderAll();
   } catch(err) {
     // GET failed — local data untouched, user can keep working
-    setSyncStatus('error', 'Sheets sin conexión · trabajando localmente');
+    setSyncStatus('offline', 'Modo local — descarga Excel para compartir');
   }
 }
 
@@ -903,22 +962,22 @@ function aprobarFactura(id) {
   const f = st.facturas.find(f => f.id === id);
   if (!f) return;
   f.estado = 'pendiente_oc';
-  saveLocal();           // Save locally FIRST — instant, always works
-  renderAll();           // Re-render immediately
+  logHistorico('clasificacion', f, 'Clasificada como mantenimiento → Pendiente OC');
+  saveLocal();
+  renderAll();
   showToast('✓ Factura clasificada → Pendiente OC', 'ok');
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(pushToSheets, 1200);  // Push to Sheets in background
+  // Sheets sync disabled — data saved locally
 }
 
 function excluirFactura(id) {
   const f = st.facturas.find(f => f.id === id);
   if (!f) return;
   f.estado = 'excluido';
+  logHistorico('exclusion', f, 'Excluida — no corresponde a mantenimiento');
   saveLocal();
   renderAll();
   showToast('Factura excluida', 'warn');
-  clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(pushToSheets, 1200);
+  // Sheets sync disabled — data saved locally
 }
 
 function restoreFactura(id) {
@@ -1035,9 +1094,15 @@ function saveEditFact() {
   f.obs = document.getElementById('ef-obs').value.trim();
   const efFe = document.getElementById('ef-fecha-entrega');
   if (efFe) f.fechaEntrega = efFe.value || '';
-  if (f.nOC) f.estado = 'completo';
-  else if (f.estado === 'completo') f.estado = 'pendiente_oc';
-  save(); closeModal('editModal'); renderAll();
+  const prevOC = f._prevOC;
+  if (f.nOC && f.nOC !== prevOC) {
+    f.estado = 'completo';
+    logHistorico('oc', f, `OC emitida: ${f.nOC}`);
+  } else if (!f.nOC && f.estado === 'completo') {
+    f.estado = 'pendiente_oc';
+  }
+  delete f._prevOC;
+  saveLocal(); closeModal('editModal'); renderAll();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1048,7 +1113,7 @@ function addOS() {
   const prov = document.getElementById('os-prov').value.trim();
   const monto = parseFloat(document.getElementById('os-monto').value);
   if (!num || !prov || isNaN(monto)) { alert('N° OS, Proveedor y Monto son obligatorios'); return; }
-  st.osPendientes.push({
+  const newOS = {
     id: uid(), num, proveedor: prov,
     descripcion: document.getElementById('os-desc').value.trim(),
     monto,
@@ -1056,8 +1121,10 @@ function addOS() {
     mes: document.getElementById('os-mes').value,
     obs: document.getElementById('os-obs').value.trim(),
     factId: ''
-  });
-  save();
+  };
+  st.osPendientes.push(newOS);
+  logOSHistorico(newOS, 'OS registrada con corte de facturación');
+  saveLocal();
   ['os-num','os-prov','os-desc','os-monto','os-fecha','os-mes','os-obs'].forEach(id => document.getElementById(id).value='');
   renderAll();
 }
@@ -1094,7 +1161,8 @@ function vincular() {
   if (!os || !f) return;
   os.factId = factId;
   f.nOS = os.num;
-  save(); closeModal('vinModal'); renderAll();
+  logHistorico('vinculacion', f, `Vinculada a OS ${os.num}`);
+  saveLocal(); closeModal('vinModal'); renderAll();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1417,6 +1485,121 @@ function renderLineas(lineas) {
 }
 
 
+
+// ══════════════════════════════════════════════════════════
+// HISTÓRICO
+// ══════════════════════════════════════════════════════════
+let filtHist = 'todos';
+
+function logHistorico(tipo, factura, detalle) {
+  if (!st.historico) st.historico = [];
+  st.historico.unshift({
+    id:        uid(),
+    ts:        new Date().toISOString(),
+    tipo,
+    nFact:     factura.nFact  || '',
+    proveedor: factura.nombre || '',
+    monto:     factura.total  || 0,
+    nOS:       factura.nOS    || '',
+    nOC:       factura.nOC    || '',
+    detalle
+  });
+  // Keep last 2000 entries
+  if (st.historico.length > 2000) st.historico = st.historico.slice(0, 2000);
+}
+
+function logOSHistorico(os, detalle) {
+  if (!st.historico) st.historico = [];
+  st.historico.unshift({
+    id:        uid(),
+    ts:        new Date().toISOString(),
+    tipo:      'os',
+    nFact:     '',
+    proveedor: os.proveedor || '',
+    monto:     os.monto     || 0,
+    nOS:       os.num       || '',
+    nOC:       '',
+    detalle
+  });
+}
+
+function setFiltHist(f, btn) {
+  filtHist = f;
+  document.querySelectorAll('#page-historico .ftab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistorico();
+}
+
+function renderHistorico() {
+  if (!st.historico) st.historico = [];
+  const q = (document.getElementById('searchHist')||{}).value || '';
+  const rows = st.historico.filter(h => {
+    const matchF = filtHist === 'todos' || h.tipo === filtHist;
+    const matchQ = !q || [h.proveedor, h.nFact, h.nOS, h.nOC, h.detalle]
+      .some(v => (v||'').toLowerCase().includes(q.toLowerCase()));
+    return matchF && matchQ;
+  });
+
+  // Update cards
+  const hist = st.historico;
+  document.getElementById('h-clasificadas').textContent = hist.filter(h=>h.tipo==='clasificacion').length;
+  document.getElementById('h-oc').textContent           = hist.filter(h=>h.tipo==='oc').length;
+  document.getElementById('h-os').textContent           = hist.filter(h=>h.tipo==='os').length;
+  document.getElementById('h-total').textContent        = hist.length;
+
+  const tb = document.getElementById('tbl-historico');
+  const em = document.getElementById('empty-historico');
+
+  if (!rows.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+  em.style.display = 'none';
+
+  const tipoMeta = {
+    clasificacion: { badge: 'b-ok',   icon: '✓', label: 'Clasificada' },
+    oc:            { badge: 'b-poc',  icon: '📄', label: 'OC emitida'  },
+    os:            { badge: 'b-pf',   icon: '📋', label: 'OS registrada'},
+    exclusion:     { badge: 'b-excl', icon: '✕', label: 'Excluida'    },
+    vinculacion:   { badge: 'b-comp', icon: '🔗', label: 'Vinculada'   },
+  };
+
+  tb.innerHTML = rows.map(h => {
+    const m = tipoMeta[h.tipo] || { badge:'b-exclu', icon:'·', label: h.tipo };
+    const ts = new Date(h.ts).toLocaleString('es-EC');
+    return `<tr>
+      <td class="mono dim" style="font-size:11px;white-space:nowrap">${ts}</td>
+      <td><span class="badge ${m.badge}">${m.icon} ${m.label}</span></td>
+      <td class="mono" style="font-size:11px">${h.nFact||'—'}</td>
+      <td class="truncate" style="max-width:200px" title="${h.proveedor}">${h.proveedor||'—'}</td>
+      <td class="right mono">${h.monto ? fmt$(h.monto) : '—'}</td>
+      <td class="mono dim" style="font-size:11px">${h.nOS||'—'}</td>
+      <td class="mono dim" style="font-size:11px">${h.nOC||'—'}</td>
+      <td class="dim" style="font-size:11px">${h.detalle||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportHistorico() {
+  if (!st.historico || !st.historico.length) {
+    alert('No hay movimientos en el histórico aún.');
+    return;
+  }
+  const data = st.historico.map(h => ({
+    'Fecha y hora':  new Date(h.ts).toLocaleString('es-EC'),
+    'Tipo':          h.tipo,
+    'N° Factura':    h.nFact,
+    'Proveedor':     h.proveedor,
+    'Monto':         Number(h.monto)||0,
+    'N° OS':         h.nOS,
+    'N° OC':         h.nOC,
+    'Detalle':       h.detalle,
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [18,14,16,28,12,14,14,30].map(w=>({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Histórico');
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Historico_Facturas_Mant_${fecha}.xlsx`);
+}
+
 function openPreview(id) {
   const f = st.facturas.find(x => x.id === id);
   if (!f) return;
@@ -1486,7 +1669,7 @@ function renderFacturas() {
   // Sort by fecha
   rows.sort((a, b) => {
     const da = a.fecha || '', db = b.fecha || '';
-    return sortFechaDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+    const da2 = String(a.fecha||''); const db2 = String(b.fecha||''); return sortFechaDir === 'desc' ? db2.localeCompare(da2) : da2.localeCompare(db2);
   });
   // Update vencido tab count
   const vCount = st.facturas.filter(f => { const d=diasDesdeEmision(f.fecha); return d!==null&&d>=3&&f.estado!=='completo'&&f.estado!=='excluido'; }).length;
@@ -1497,9 +1680,9 @@ function renderFacturas() {
   if (!rows.length) { tb.innerHTML=''; em.style.display='block'; return; }
   em.style.display='none';
   if (sortByDate) rows.sort((a,b) => {
-    const da = a.fecha ? new Date(a.fecha) : new Date(0);
-    const db = b.fecha ? new Date(b.fecha) : new Date(0);
-    return da - db;
+    const da = String(a.fecha||'');
+    const db = String(b.fecha||'');
+    return da.localeCompare(db);
   });
   const m = ESTADO_META;
   tb.innerHTML = rows.map(f=>`
