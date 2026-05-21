@@ -360,7 +360,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltFact('excluido',this)">— Excluido</button>
       <button class="ftab" onclick="setFiltFact('vencido',this)" id="tab-vencido">🔴 Vencidos</button>
     </div>
-    <input class="search" id="searchFact" placeholder="🔍 RUC, proveedor, N° factura..." oninput="renderFacturas()">
+    <input class="search" id="searchFact" placeholder="🔍 RUC, proveedor, N° factura..." oninput="try{renderFacturas()}catch(e){console.error(e)}">
     <div class="ml-auto" style="display:flex;gap:8px">
       <button class="btn btn-ghost btn-sm" id="btn-sort-date" onclick="toggleSortDate()">📅 Ordenar por fecha</button>
       <button class="btn btn-ghost btn-sm" id="btnSortFecha" onclick="toggleSortFecha()">📅 Fecha ↓</button>
@@ -433,7 +433,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
   </div>
 
   <div class="toolbar">
-    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." oninput="renderOS()">
+    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." oninput="try{renderOS()}catch(e){console.error(e)}">
   </div>
 
   <div class="tbl-wrap">
@@ -491,7 +491,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltProv('compartido',this)">🔀 Compartidos</button>
       <button class="ftab" onclick="setFiltProv('no_aplica',this)">🚫 No aplica</button>
     </div>
-    <input class="search" id="searchProv" placeholder="🔍 RUC o razón social..." oninput="renderProveedores()">
+    <input class="search" id="searchProv" placeholder="🔍 RUC o razón social..." oninput="try{renderProveedores()}catch(e){console.error(e)}">
     <div class="ml-auto">
       <span class="dim" style="font-size:11px">Los proveedores del reporte no reconocidos aparecen como "compartidos" automáticamente</span>
     </div>
@@ -546,7 +546,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltHist('exclusion',this)">✕ Exclusiones</button>
       <button class="ftab" onclick="setFiltHist('vinculacion',this)">🔗 Vinculaciones</button>
     </div>
-    <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." oninput="renderHistorico()">
+    <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." oninput="try{renderHistorico()}catch(e){console.error(e)}">
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:11px;color:var(--muted)">Desde</span>
       <input type="date" id="filtHistDesde" class="search" style="width:140px" onchange="renderHistorico()">
@@ -665,6 +665,22 @@ function showToast(msg, type='ok') {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3500);
+}
+
+
+
+function getSearch(id) {
+  try { return (document.getElementById(id)||{}).value || ''; } catch(e) { return ''; }
+}
+
+function normalize(str) {
+  return (str||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function matchSearch(q, ...fields) {
+  if (!q) return true;
+  const nq = normalize(q);
+  return fields.some(v => normalize(v).includes(nq));
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -1379,13 +1395,12 @@ function setFiltHist(f, btn) {
 
 function renderHistorico() {
   if (!st.historico) st.historico = [];
-  const q = (document.getElementById('searchHist')||{}).value || '';
-  const hDesde = (document.getElementById('filtHistDesde')||{}).value || '';
-  const hHasta = (document.getElementById('filtHistHasta')||{}).value || '';
+  const q = getSearch('searchHist');
+  const hDesde = getSearch('filtHistDesde');
+  const hHasta = getSearch('filtHistHasta');
   const rows = st.historico.filter(h => {
     const matchF = filtHist === 'todos' || h.tipo === filtHist;
-    const matchQ = !q || [h.proveedor, h.nFact, h.nOS, h.nOC, h.detalle]
-      .some(v => (v||'').toLowerCase().includes(q.toLowerCase()));
+    const matchQ = matchSearch(q, h.proveedor, h.nFact, h.nOS||'', h.nOC||'', h.detalle||'');
     const hDate = h.ts ? h.ts.slice(0,10) : '';
     const matchDesde = !hDesde || hDate >= hDesde;
     const matchHasta = !hHasta || hDate <= hHasta;
@@ -1508,16 +1523,16 @@ function toggleSortDate() {
 }
 
 function renderFacturas() {
-  const q = (document.getElementById('searchFact')||{}).value||'';
-  const desde = (document.getElementById('filtFechaDesde')||{}).value || '';
-  const hasta = (document.getElementById('filtFechaHasta')||{}).value || '';
+  const q = getSearch('searchFact');
+  const desde = getSearch('filtFechaDesde');
+  const hasta = getSearch('filtFechaHasta');
   const rows = st.facturas.filter(f => {
     const dias = diasDesdeEmision(f.fecha);
     const isVencido = dias !== null && dias >= 3 && f.estado !== 'completo' && f.estado !== 'excluido';
     const matchF = filtFact==='todos' ? true
       : filtFact==='vencido' ? isVencido
       : f.estado===filtFact;
-    const matchQ = !q || [f.nombre,f.nFact,f.ruc,f.nOS,f.nOC,f.obs].some(v=>(v||'').toLowerCase().includes(q.toLowerCase()));
+    const matchQ = matchSearch(q, f.nombre, f.nFact, f.ruc, f.nOS||'', f.nOC||'', f.obs||'');
     const matchDesde = !desde || (f.fecha && f.fecha >= desde);
     const matchHasta = !hasta || (f.fecha && f.fecha <= hasta);
     return matchF && matchQ && matchDesde && matchHasta;
@@ -1571,9 +1586,8 @@ function renderFacturas() {
 }
 
 function renderOS() {
-  const q = (document.getElementById('searchOS')||{}).value||'';
-  const rows = st.osPendientes.filter(o => !q ||
-    [o.num,o.proveedor,o.descripcion,o.obs].some(v=>(v||'').toLowerCase().includes(q.toLowerCase())));
+  const q = getSearch('searchOS');
+  const rows = st.osPendientes.filter(o => matchSearch(q, o.num, o.proveedor, o.descripcion||'', o.obs||''));
   const tb = document.getElementById('tbl-os');
   const em = document.getElementById('empty-os');
   if (!rows.length) { tb.innerHTML=''; em.style.display='block'; return; }
@@ -1604,10 +1618,10 @@ function setFiltProv(f,btn) {
 }
 
 function renderProveedores() {
-  const q = (document.getElementById('searchProv')||{}).value||'';
+  const q = getSearch('searchProv');
   const rows = st.proveedores.filter(p => {
     const matchF = filtProv2==='todos' || p.tipo===filtProv2;
-    const matchQ = !q || [p.ruc,p.nombre].some(v=>(v||'').toLowerCase().includes(q.toLowerCase()));
+    const matchQ = matchSearch(q, p.ruc, p.nombre);
     return matchF && matchQ;
   });
   const tb = document.getElementById('tbl-proveedores');
