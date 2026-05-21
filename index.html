@@ -351,7 +351,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
     💡 Importa el reporte del sistema usando el botón <strong>⬆ Importar reporte</strong>. Las facturas de proveedores exclusivos entran automáticamente; las de proveedores compartidos quedan en "Por revisar".
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar" style="flex-wrap:wrap;gap:8px">
     <div class="filter-group">
       <button class="ftab active" onclick="setFiltFact('todos',this)">Todos</button>
       <button class="ftab" onclick="setFiltFact('revision',this)">🔍 Por revisar</button>
@@ -360,9 +360,15 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltFact('excluido',this)">— Excluido</button>
       <button class="ftab" onclick="setFiltFact('vencido',this)" id="tab-vencido">🔴 Vencidos</button>
     </div>
-    <input class="search" id="searchFact" placeholder="🔍 RUC, proveedor, N° factura..." oninput="try{renderFacturas()}catch(e){console.error(e)}">
-    <div class="ml-auto" style="display:flex;gap:8px">
-      <button class="btn btn-ghost btn-sm" id="btn-sort-date" onclick="toggleSortDate()">📅 Ordenar por fecha</button>
+    <input class="search" id="searchFact" placeholder="🔍 Proveedor, N° factura, RUC..." style="width:260px">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
+      <span style="font-size:11px;color:var(--muted)">Desde</span>
+      <input type="date" id="filtFechaDesde" class="search" style="width:140px">
+      <span style="font-size:11px;color:var(--muted)">Hasta</span>
+      <input type="date" id="filtFechaHasta" class="search" style="width:140px">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtFechaDesde').value='';document.getElementById('filtFechaHasta').value='';renderFacturas()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px">
       <button class="btn btn-ghost btn-sm" id="btnSortFecha" onclick="toggleSortFecha()">📅 Fecha ↓</button>
       <button class="btn btn-blue btn-sm" onclick="openVincularModal()">🔗 Vincular OS → Factura</button>
     </div>
@@ -433,7 +439,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
   </div>
 
   <div class="toolbar">
-    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." oninput="try{renderOS()}catch(e){console.error(e)}">
+    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." >
   </div>
 
   <div class="tbl-wrap">
@@ -491,7 +497,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltProv('compartido',this)">🔀 Compartidos</button>
       <button class="ftab" onclick="setFiltProv('no_aplica',this)">🚫 No aplica</button>
     </div>
-    <input class="search" id="searchProv" placeholder="🔍 RUC o razón social..." oninput="try{renderProveedores()}catch(e){console.error(e)}">
+    <input class="search" id="searchProv" placeholder="🔍 RUC o razón social..." >
     <div class="ml-auto">
       <span class="dim" style="font-size:11px">Los proveedores del reporte no reconocidos aparecen como "compartidos" automáticamente</span>
     </div>
@@ -546,7 +552,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltHist('exclusion',this)">✕ Exclusiones</button>
       <button class="ftab" onclick="setFiltHist('vinculacion',this)">🔗 Vinculaciones</button>
     </div>
-    <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." oninput="try{renderHistorico()}catch(e){console.error(e)}">
+    <input class="search" id="searchHist" placeholder="🔍 Buscar proveedor, N° factura..." >
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:11px;color:var(--muted)">Desde</span>
       <input type="date" id="filtHistDesde" class="search" style="width:140px" onchange="renderHistorico()">
@@ -1704,6 +1710,31 @@ document.getElementById('os-fecha').value = new Date().toISOString().slice(0,10)
 const nxt = new Date(); nxt.setMonth(nxt.getMonth()+1);
 document.getElementById('os-mes').value = `${nxt.getFullYear()}-${String(nxt.getMonth()+1).padStart(2,'0')}`;
 
+// ══════════════════════════════════════════════════════════
+// SEARCH EVENT LISTENERS — set after DOM ready
+// ══════════════════════════════════════════════════════════
+function initSearchListeners() {
+  const searches = [
+    { id: 'searchFact',    fn: renderFacturas },
+    { id: 'searchOS',      fn: renderOS },
+    { id: 'searchProv',    fn: renderProveedores },
+    { id: 'searchHist',    fn: renderHistorico },
+    { id: 'filtFechaDesde',fn: renderFacturas },
+    { id: 'filtFechaHasta',fn: renderFacturas },
+    { id: 'filtHistDesde', fn: renderHistorico },
+    { id: 'filtHistHasta', fn: renderHistorico },
+  ];
+  searches.forEach(({ id, fn }) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        try { fn(); } catch(e) { console.error('Search error [' + id + ']:', e); }
+      });
+    }
+  });
+}
+
+initSearchListeners();
 load();
 </script>
 </body>
