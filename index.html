@@ -360,7 +360,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
       <button class="ftab" onclick="setFiltFact('excluido',this)">— Excluido</button>
       <button class="ftab" onclick="setFiltFact('vencido',this)" id="tab-vencido">🔴 Vencidos</button>
     </div>
-    <input class="search" id="searchFact" placeholder="🔍 Proveedor, N° factura, RUC..." style="width:260px">
+    <input class="search" id="searchFact" placeholder="🔍 Proveedor, N° factura, RUC..." style="width:260px" oninput="buscarFacturas(this.value)">
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
       <span style="font-size:11px;color:var(--muted)">Desde</span>
       <input type="date" id="filtFechaDesde" class="search" style="width:140px">
@@ -439,7 +439,7 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
   </div>
 
   <div class="toolbar">
-    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." >
+    <input class="search" id="searchOS" placeholder="🔍 N° OS, proveedor..." oninput="buscarOS(this.value)" >
   </div>
 
   <div class="tbl-wrap">
@@ -1131,7 +1131,7 @@ function setFiltFact(f,btn) {
   filtFact = f;
   document.querySelectorAll('#page-facturas .ftab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  renderFacturas();
+  renderFacturas();  // search query preserved — user can combine filter + search
 }
 function setFiltFactProv(nombre) {
   showPage('facturas', document.querySelectorAll('.ntab')[1]);
@@ -1401,12 +1401,11 @@ function setFiltHist(f, btn) {
 
 function renderHistorico() {
   if (!st.historico) st.historico = [];
-  const q = getSearch('searchHist');
   const hDesde = getSearch('filtHistDesde');
   const hHasta = getSearch('filtHistHasta');
   const rows = st.historico.filter(h => {
     const matchF = filtHist === 'todos' || h.tipo === filtHist;
-    const matchQ = matchSearch(q, h.proveedor, h.nFact, h.nOS||'', h.nOC||'', h.detalle||'');
+    const matchQ = matchHist(h);
     const hDate = h.ts ? h.ts.slice(0,10) : '';
     const matchDesde = !hDesde || hDate >= hDesde;
     const matchHasta = !hHasta || hDate <= hHasta;
@@ -1520,6 +1519,50 @@ function openPreview(id) {
   document.getElementById('previewModal').classList.add('open');
 }
 
+
+// ══════════════════════════════════════════════════════════
+// SEARCH FUNCTIONS — receive value directly from input
+// ══════════════════════════════════════════════════════════
+let searchQueryFact = '';
+let searchQueryOS   = '';
+let searchQueryHist = '';
+
+function buscarFacturas(q) {
+  searchQueryFact = (q || '').toLowerCase().trim();
+  renderFacturas();
+}
+
+function buscarOS(q) {
+  searchQueryOS = (q || '').toLowerCase().trim();
+  renderOS();
+}
+
+function buscarHistorico(q) {
+  searchQueryHist = (q || '').toLowerCase().trim();
+  renderHistorico();
+}
+
+function matchFact(f) {
+  if (!searchQueryFact) return true;
+  const haystack = [f.nombre, f.nFact, f.ruc, f.nOS, f.nOC, f.obs]
+    .map(v => (v||'').toLowerCase()).join(' ');
+  return haystack.includes(searchQueryFact);
+}
+
+function matchOS(o) {
+  if (!searchQueryOS) return true;
+  const haystack = [o.num, o.proveedor, o.descripcion, o.obs]
+    .map(v => (v||'').toLowerCase()).join(' ');
+  return haystack.includes(searchQueryOS);
+}
+
+function matchHist(h) {
+  if (!searchQueryHist) return true;
+  const haystack = [h.proveedor, h.nFact, h.nOS, h.nOC, h.detalle]
+    .map(v => (v||'').toLowerCase()).join(' ');
+  return haystack.includes(searchQueryHist);
+}
+
 function toggleSortDate() {
   sortByDate = !sortByDate;
   const btn = document.getElementById('btn-sort-date');
@@ -1529,7 +1572,6 @@ function toggleSortDate() {
 }
 
 function renderFacturas() {
-  const q = getSearch('searchFact');
   const desde = getSearch('filtFechaDesde');
   const hasta = getSearch('filtFechaHasta');
   const rows = st.facturas.filter(f => {
@@ -1538,10 +1580,9 @@ function renderFacturas() {
     const matchF = filtFact==='todos' ? true
       : filtFact==='vencido' ? isVencido
       : f.estado===filtFact;
-    const matchQ = matchSearch(q, f.nombre, f.nFact, f.ruc, f.nOS||'', f.nOC||'', f.obs||'');
     const matchDesde = !desde || (f.fecha && f.fecha >= desde);
     const matchHasta = !hasta || (f.fecha && f.fecha <= hasta);
-    return matchF && matchQ && matchDesde && matchHasta;
+    return matchF && matchFact(f) && matchDesde && matchHasta;
   });
   // Sort by fecha
   rows.sort((a, b) => {
@@ -1592,8 +1633,7 @@ function renderFacturas() {
 }
 
 function renderOS() {
-  const q = getSearch('searchOS');
-  const rows = st.osPendientes.filter(o => matchSearch(q, o.num, o.proveedor, o.descripcion||'', o.obs||''));
+  const rows = st.osPendientes.filter(o => matchOS(o));
   const tb = document.getElementById('tbl-os');
   const em = document.getElementById('empty-os');
   if (!rows.length) { tb.innerHTML=''; em.style.display='block'; return; }
