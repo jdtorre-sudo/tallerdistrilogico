@@ -1018,7 +1018,7 @@ function vincular() {
 // RENDER
 // ══════════════════════════════════════════════════════════
 const fmt$ = n => '$' + Number(n||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtD = d => { if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+const fmtD = d => { if(!d) return '—'; const s=String(d); if(!s.includes('-')) return s; const [y,m,dd]=s.split('-'); return `${dd}/${m}/${y}`; };
 const fmtM = m => { if(!m) return '—'; const [y,mo]=m.split('-'); return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+mo-1]+' '+y; };
 
 const ESTADO_META = {
@@ -1565,7 +1565,7 @@ function renderFacturas() {
       : filtFact==='vencido' ? isVencido
       : f.estado===filtFact;
     const matchQ = !_q || [f.nombre,f.nFact,f.ruc,f.nOS,f.nOC,f.obs]
-      .some(v => (v||'').toLowerCase().includes(_q));
+      .some(v => String(v==null?'':v).toLowerCase().includes(_q));
     const matchDesde = !desde || (f.fecha && f.fecha >= desde);
     const matchHasta = !hasta || (f.fecha && f.fecha <= hasta);
     return matchF && matchQ && matchDesde && matchHasta;
