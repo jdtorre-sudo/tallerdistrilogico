@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Control de Facturación – Mantenimiento Vehicular</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
@@ -165,7 +166,120 @@ td input.ie:focus{box-shadow:0 0 0 2px rgba(240,136,62,.3)}
 </head>
 <body>
 
-<nav>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:40px;width:380px;max-width:95vw">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="background:var(--accent);color:#000;font-family:var(--mono);font-weight:600;font-size:12px;padding:4px 12px;border-radius:4px;display:inline-block;letter-spacing:1px;margin-bottom:12px">DISTRILOGICO</div>
+      <div style="font-size:18px;font-weight:600;color:var(--text)">Control de Facturación</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Mantenimiento Vehicular</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Email</label>
+        <input id="loginEmail" type="email" placeholder="tu@email.com"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px">Contraseña</label>
+        <input id="loginPass" type="password" placeholder="••••••••"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="loginError" style="color:#ef4444;font-size:12px;display:none"></div>
+      <button onclick="doLogin()"
+        style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">
+        Ingresar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROVEEDOR PANEL -->
+<div id="proveedorPanel" style="display:none;min-height:100vh;background:var(--bg)">
+  <div style="background:var(--s1);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="background:var(--accent);color:#000;font-family:var(--mono);font-weight:600;font-size:10px;padding:3px 8px;border-radius:3px">DISTRILOGICO</div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Portal de Proveedores</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)" id="provNombreDisplay"></div>
+      </div>
+    </div>
+    <button onclick="doLogout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px">Cerrar sesión</button>
+  </div>
+  <div style="max-width:800px;margin:32px auto;padding:0 24px">
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;color:var(--accent)">📋 Registrar nuevo servicio</div>
+      <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="grid-column:span 2">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Unidad (DP) *</label>
+          <input id="pv-unidad" type="text" placeholder="Ej: DP 48, BODEGA"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <div style="grid-column:span 2">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Detalle del servicio *</label>
+          <textarea id="pv-detalle" placeholder="Describa el trabajo realizado..." rows="3"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">N° Orden de Servicio</label>
+          <input id="pv-os" type="text" placeholder="OS 101"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Valor del servicio ($) *</label>
+          <input id="pv-valor" type="number" placeholder="0.00" step="0.01"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Fecha del servicio</label>
+          <input id="pv-fecha" type="date"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">N° Proforma</label>
+          <input id="pv-proforma" type="text" placeholder="Si ya tiene"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <div style="grid-column:span 2">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px">Observaciones</label>
+          <input id="pv-obs" type="text" placeholder="Información adicional"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px">
+        <div id="pvError" style="color:#ef4444;font-size:12px;align-self:center;display:none"></div>
+        <div id="pvOk" style="color:#3fb950;font-size:12px;align-self:center;display:none">✅ Registrado correctamente</div>
+        <button onclick="registrarOS()"
+          style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer">
+          Registrar servicio
+        </button>
+      </div>
+    </div>
+    <!-- MIS OS -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)">📋 Mis servicios registrados</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead style="background:var(--s2)">
+            <tr>
+              <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)">Fecha</th>
+              <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)">Unidad</th>
+              <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)">Detalle</th>
+              <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)">N° OS</th>
+              <th style="padding:9px 12px;text-align:right;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="misOsTable"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav id="mainNav" style="display:none">
   <div class="nav-brand">
     <div class="brand-chip">DISTRILOGICO</div>
     <div>
@@ -1764,7 +1878,259 @@ function initSearchListeners() {
 }
 
 initSearchListeners();
-load();
+// ══════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════════════
+const SUPA_URL = 'https://ntauhkxkzppaymrzjgld.supabase.co';
+const SUPA_KEY = 'sb_publishable_-jx-55Yuv-Jzx8UrPi-CDw_MDM97Y5p';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let currentPerfil = null;
+
+// ── AUTH ──────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!email || !pass) { errEl.textContent = 'Completa email y contraseña'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#loginScreen button');
+  btn.textContent = 'Ingresando...'; btn.disabled = true;
+
+  const { data, error } = await supa.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    errEl.textContent = 'Email o contraseña incorrectos'; errEl.style.display = 'block';
+    btn.textContent = 'Ingresar'; btn.disabled = false;
+    return;
+  }
+  await onLogin(data.user);
+}
+
+async function onLogin(user) {
+  currentUser = user;
+  // Get perfil
+  const { data: perfil } = await supa.from('perfiles').select('*').eq('id', user.id).single();
+  currentPerfil = perfil;
+
+  document.getElementById('loginScreen').style.display = 'none';
+
+  if (perfil && perfil.rol === 'proveedor') {
+    // Show proveedor panel
+    document.getElementById('provNombreDisplay').textContent = perfil.proveedor_nombre || perfil.email;
+    document.getElementById('proveedorPanel').style.display = 'block';
+    document.getElementById('pv-fecha').value = new Date().toISOString().slice(0,10);
+    await cargarMisOS();
+  } else {
+    // Show main app (admin/analista)
+    document.getElementById('mainNav').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'block';
+    await loadFromSupabase();
+    load();
+  }
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+  location.reload();
+}
+
+// ── LOAD FROM SUPABASE ────────────────────────────────────
+async function loadFromSupabase() {
+  try {
+    const [{ data: facturas }, { data: osPendientes }, { data: proveedores }, { data: historico }] = await Promise.all([
+      supa.from('facturas').select('*').order('fecha', { ascending: false }),
+      supa.from('os_pendientes').select('*').order('created_at', { ascending: false }),
+      supa.from('proveedores').select('*'),
+      supa.from('historico').select('*').order('created_at', { ascending: false }).limit(500)
+    ]);
+
+    st.facturas     = (facturas||[]).map(mapFactura);
+    st.osPendientes = (osPendientes||[]).map(mapOS);
+    st.proveedores  = (proveedores||[]).map(mapProv);
+    st.historico    = (historico||[]).map(mapHist);
+    saveLocal();
+  } catch(e) {
+    console.error('loadFromSupabase:', e);
+  }
+}
+
+// Map Supabase rows to app format
+function mapFactura(r) {
+  return { id: r.id, estado: r.estado, ruc: r.ruc, nombre: r.nombre,
+    nFact: r.n_fact, fecha: r.fecha, subtotal: r.subtotal, iva: r.iva, total: r.total,
+    nOS: r.n_os, nOC: r.n_oc, obs: r.obs, fechaEntrega: r.fecha_entrega,
+    xmlLineas: r.xml_lineas, xmlAuth: r.xml_auth };
+}
+function mapOS(r) {
+  return { id: r.id, num: r.num, proveedor: r.proveedor, descripcion: r.descripcion,
+    monto: r.monto, fecha: r.fecha, mes: r.mes, obs: r.obs,
+    factId: r.fact_id ? String(r.fact_id) : '' };
+}
+function mapProv(r) {
+  return { id: r.id, ruc: r.ruc||'', nombre: r.nombre, tipo: r.tipo };
+}
+function mapHist(r) {
+  return { id: r.id, ts: r.created_at, tipo: r.tipo, nFact: r.n_fact,
+    proveedor: r.proveedor, monto: r.monto, nOS: r.n_os, nOC: r.n_oc, detalle: r.detalle };
+}
+
+// ── SAVE TO SUPABASE ──────────────────────────────────────
+async function syncFactura(f) {
+  const row = { estado: f.estado, ruc: f.ruc, nombre: f.nombre, n_fact: f.nFact,
+    fecha: f.fecha, subtotal: f.subtotal, iva: f.iva, total: f.total,
+    n_os: f.nOS||'', n_oc: f.nOC||'', obs: f.obs||'', fecha_entrega: f.fechaEntrega||'',
+    xml_lineas: f.xmlLineas||null, xml_auth: f.xmlAuth||null, updated_at: new Date().toISOString() };
+  
+  // Check if exists
+  const existing = await supa.from('facturas').select('id').eq('id', f.id).single();
+  if (existing.data) {
+    await supa.from('facturas').update(row).eq('id', f.id);
+  } else {
+    await supa.from('facturas').insert({ ...row, id: f.id });
+  }
+}
+
+async function syncOS(o) {
+  const row = { num: o.num, proveedor: o.proveedor, descripcion: o.descripcion||'',
+    monto: o.monto, fecha: o.fecha||'', mes: o.mes||'', obs: o.obs||'',
+    fact_id: o.factId||null, user_id: currentUser?.id };
+  const existing = await supa.from('os_pendientes').select('id').eq('id', o.id).single();
+  if (existing.data) {
+    await supa.from('os_pendientes').update(row).eq('id', o.id);
+  } else {
+    await supa.from('os_pendientes').insert({ ...row, id: o.id });
+  }
+}
+
+async function syncProv(p) {
+  const row = { ruc: p.ruc||'', nombre: p.nombre, tipo: p.tipo };
+  const existing = await supa.from('proveedores').select('id').eq('id', p.id).single();
+  if (existing.data) {
+    await supa.from('proveedores').update(row).eq('id', p.id);
+  } else {
+    await supa.from('proveedores').insert({ ...row, id: p.id });
+  }
+}
+
+async function logToSupabase(h) {
+  await supa.from('historico').insert({
+    tipo: h.tipo, n_fact: h.nFact||'', proveedor: h.proveedor||'',
+    monto: h.monto||0, n_os: h.nOS||'', n_oc: h.nOC||'',
+    detalle: h.detalle||'', user_id: currentUser?.id
+  });
+}
+
+// Override save to also sync to Supabase
+const _origSave = save;
+function save() {
+  saveLocal();
+  // Async sync — don't block UI
+  setTimeout(async () => {
+    try {
+      // Sync modified facturas
+      for (const f of st.facturas.filter(f => f.estado !== 'revision')) {
+        await syncFactura(f);
+      }
+      // Sync proveedores
+      for (const p of st.proveedores) { await syncProv(p); }
+      // Sync os
+      for (const o of st.osPendientes) { await syncOS(o); }
+    } catch(e) { console.error('Supabase sync:', e); }
+  }, 500);
+}
+
+// Override logHistorico to also log to Supabase
+const _origLog = logHistorico;
+function logHistorico(tipo, factura, detalle) {
+  _origLog(tipo, factura, detalle);
+  logToSupabase({ tipo, nFact: factura.nFact, proveedor: factura.nombre,
+    monto: factura.total, nOS: factura.nOS, nOC: factura.nOC, detalle });
+}
+
+// ── PROVEEDOR PORTAL ──────────────────────────────────────
+async function registrarOS() {
+  const unidad  = document.getElementById('pv-unidad').value.trim();
+  const detalle = document.getElementById('pv-detalle').value.trim();
+  const valor   = parseFloat(document.getElementById('pv-valor').value);
+  const pvErr   = document.getElementById('pvError');
+  const pvOk    = document.getElementById('pvOk');
+  pvErr.style.display = 'none'; pvOk.style.display = 'none';
+
+  if (!unidad || !detalle || isNaN(valor)) {
+    pvErr.textContent = 'Unidad, detalle y valor son obligatorios';
+    pvErr.style.display = 'block'; return;
+  }
+
+  const { error } = await supa.from('os_pendientes').insert({
+    num:         document.getElementById('pv-os').value.trim(),
+    proveedor:   currentPerfil?.proveedor_nombre || currentPerfil?.email,
+    descripcion: detalle,
+    monto:       valor,
+    fecha:       document.getElementById('pv-fecha').value,
+    mes:         document.getElementById('pv-fecha').value?.slice(0,7)||'',
+    obs:         (document.getElementById('pv-proforma').value.trim() ? 
+                  'Proforma: ' + document.getElementById('pv-proforma').value.trim() + ' | ' : '') +
+                 document.getElementById('pv-obs').value.trim(),
+    user_id:     currentUser.id
+  });
+
+  if (error) { pvErr.textContent = 'Error al guardar: ' + error.message; pvErr.style.display = 'block'; return; }
+
+  // Clear form
+  ['pv-unidad','pv-detalle','pv-os','pv-valor','pv-proforma','pv-obs'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pv-fecha').value = new Date().toISOString().slice(0,10);
+  pvOk.style.display = 'block';
+  setTimeout(() => pvOk.style.display = 'none', 4000);
+  await cargarMisOS();
+}
+
+async function cargarMisOS() {
+  const { data } = await supa.from('os_pendientes')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+  
+  const tb = document.getElementById('misOsTable');
+  if (!data || !data.length) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Sin servicios registrados aún</td></tr>';
+    return;
+  }
+  const fmt$ = n => '$' + Number(n||0).toFixed(2);
+  const fmtD = d => { if(!d) return '—'; const s=String(d); if(!s.includes('-')) return s; const [y,m,dd]=s.split('-'); return dd+'/'+m+'/'+y; };
+  tb.innerHTML = data.map(r => `<tr>
+    <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)">${fmtD(r.fecha)}</td>
+    <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px">${r.num||'—'}</td>
+    <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.descripcion}">${r.descripcion}</td>
+    <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--mono)">${r.num||'—'}</td>
+    <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--mono);text-align:right">${fmt$(r.monto)}</td>
+  </tr>`).join('');
+}
+
+// ── IMPORT: also save to Supabase ─────────────────────────
+// After importReport saves to st.facturas, sync new ones
+const _origImport = importReport;
+async function importReport(event) {
+  const before = st.facturas.length;
+  await _origImport(event);
+  // Sync newly added facturas that are not revision
+  const newFacturas = st.facturas.slice(before).filter(f => f.estado !== 'revision');
+  for (const f of newFacturas) { await syncFactura(f); }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+(async () => {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) {
+    await onLogin(session.user);
+  }
+  // If not logged in, show login screen (already visible by default)
+})();
+
+// load() called from onLogin
 </script>
 </body>
 </html>
