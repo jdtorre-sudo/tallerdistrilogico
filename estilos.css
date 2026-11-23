@@ -1,0 +1,57 @@
+/* Estilo del sistema: copia de las maquetas de referencia (referencias/gestion_produccion_soldadura.html
+   y referencias/portal_tecnico.html). Tailwind + Inter, paleta "industrial". */
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+@import '@fontsource/inter/900.css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family: 'Inter', sans-serif; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+
+/* Cápsulas estilo "dock" de la grilla (maqueta de soldadura) */
+.dock-capsule {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 1.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dock-capsule:hover { transform: translateY(-2px); }
+
+/* Cápsulas del menú lateral (portal del técnico) */
+.dock-nav {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1.25rem;
+}
+.dock-nav:hover { transform: translateX(4px); }
+.dock-nav.active { background-color: #dc2626; color: #ffffff !important; box-shadow: 0 8px 20px -4px rgba(220, 38, 38, 0.4); }
+.dock-nav.active i, .dock-nav.active span { color: #ffffff !important; }
+
+/* Controles de formulario: mismos de las maquetas */
+@layer components {
+  .campo-texto { @apply w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:border-industrial-blue; }
+  .campo-texto:disabled { @apply bg-slate-100 text-slate-500 cursor-not-allowed; }
+  .etiqueta { @apply block text-xs font-bold text-slate-600 uppercase mb-1; }
+  .btn-rojo { @apply bg-industrial-red hover:bg-industrial-darkred text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-azul { @apply bg-industrial-blue hover:bg-blue-900 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-marino { @apply bg-industrial-navy hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50; }
+  .btn-gris { @apply bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50; }
+  .btn-verde { @apply bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50; }
+  .btn-peligro { @apply bg-red-50 text-industrial-red hover:bg-red-100 border border-red-200 font-bold px-4 py-2 rounded-xl text-xs transition-all inline-flex items-center justify-center gap-1.5; }
+  .tarjeta { @apply bg-white rounded-2xl shadow-sm border border-slate-200; }
+  .tabla-th { @apply py-3 px-4 text-left; }
+  .tabla-td { @apply py-3 px-4; }
+}

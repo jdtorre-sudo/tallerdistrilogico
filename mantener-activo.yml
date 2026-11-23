@@ -1,0 +1,18 @@
+# Evita que Supabase (plan gratis) pause la base por inactividad.
+# Hace una consulta pequeña todos los días.
+name: Mantener activa la base
+on:
+  schedule:
+    - cron: '17 11 * * *'   # todos los días 06:17 hora de Ecuador
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar la base
+        run: |
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/usuario_actual" \
+            -X POST -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}')
+          echo "Respuesta de Supabase: $codigo"
+          if [ "$codigo" -ge 500 ] || [ "$codigo" = "000" ]; then exit 1; fi

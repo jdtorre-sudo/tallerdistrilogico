@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1c2530"/>
+  <rect x="64" y="360" width="384" height="40" rx="10" fill="#f2b705"/>
+  <path d="M112 300 V196 Q112 160 148 160 H236 Q262 160 262 190 V300 Z" fill="#f1f4f7"/>
+  <rect x="132" y="178" width="46" height="40" rx="6" fill="#1c2530"/>
+  <rect x="270" y="236" width="140" height="64" rx="8" fill="#f1f4f7"/>
+  <circle cx="170" cy="314" r="34" fill="#f2b705" stroke="#1c2530" stroke-width="12"/>
+  <circle cx="360" cy="314" r="34" fill="#f2b705" stroke="#1c2530" stroke-width="12"/>
+  <text x="256" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="92" fill="#f2b705">OT</text>
+</svg>

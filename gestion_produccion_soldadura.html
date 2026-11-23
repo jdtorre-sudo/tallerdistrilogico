@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISTRILÓGICO S.A. | Módulo de Gestión de Producción - Soldadura</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        industrial: {
+                            navy: '#0f172a',
+                            blue: '#1e3a8a',
+                            accent: '#2563eb',
+                            red: '#dc2626',
+                            darkred: '#991b1b',
+                            steel: '#64748b',
+                            light: '#f8fafc',
+                            cardbg: '#ffffff',
+                            border: '#e2e8f0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        /* iDock-style Capsule Styling */
+        .dock-capsule {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 1.75rem; /* ~28px ultra-rounded */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dock-capsule:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- HEADER INDUSTRIAL -->
+    <header class="bg-industrial-navy text-white shadow-lg border-b-4 border-industrial-red sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-industrial-red p-2.5 rounded-2xl shadow-md flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">DISTRILÓGICO S.A.</span>
+                        <span class="bg-industrial-red/20 text-industrial-red text-[10px] font-bold px-2 py-0.5 rounded-full border border-industrial-red/30">TALLER DE SOLDADURA</span>
+                    </div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-tight text-white">Módulo de Gestión de Producción</h1>
+                </div>
+            </div>
+
+            <!-- Controls: Role, Platform, Date, Supervisor, Status -->
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+                <!-- Role Selector Switch -->
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 flex items-center space-x-2 shadow-inner">
+                    <span class="text-xs text-slate-400 font-medium">Rol:</span>
+                    <select id="userRoleSelect" onchange="toggleUserRole(this.value)" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer text-xs">
+                        <option value="supervisor" class="bg-slate-800 text-white">Supervisor</option>
+                        <option value="jefe_patio" class="bg-slate-800 text-white">Jefe de Patio (Validador)</option>
+                    </select>
+                </div>
+
+                <!-- Platform Selector -->
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 flex items-center space-x-2 shadow-inner">
+                    <span class="text-xs text-slate-400 font-medium">Plataforma:</span>
+                    <select id="platformSelect" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="DP-077" class="bg-slate-800 text-white">DP-077 (Tráiler 3 ejes)</option>
+                        <option value="DP-078" class="bg-slate-800 text-white">DP-078 (Plataforma Cama Baja)</option>
+                        <option value="DP-079" class="bg-slate-800 text-white">DP-079 (Tanquero Lixiviados)</option>
+                        <option value="DP-080" class="bg-slate-800 text-white">DP-080 (Portacontenedor)</option>
+                    </select>
+                </div>
+
+                <!-- Date -->
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 flex items-center space-x-2 shadow-inner">
+                    <span class="text-xs text-slate-400 font-medium">Fecha:</span>
+                    <span id="currentDate" class="font-semibold text-white">09/11/2026</span>
+                </div>
+
+                <!-- Supervisor Input -->
+                <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 flex items-center space-x-2 shadow-inner">
+                    <span class="text-xs text-slate-400 font-medium">Supervisor:</span>
+                    <input type="text" id="supervisorInput" value="Ing. Roberto Mendoza" class="bg-transparent text-white font-medium focus:outline-none w-36 border-b border-slate-600 focus:border-industrial-red text-xs">
+                </div>
+
+                <!-- Platform Status Badge -->
+                <div id="platformStatusBadge" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="platformStatusText">EN INSPECCIÓN</span>
+                </div>
+
+                <!-- Catalog Admin Button -->
+                <button onclick="openCatalogModal()" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-xl transition-colors border border-slate-600 flex items-center space-x-1" title="Gestionar Catálogo">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="text-xs hidden sm:inline">Catálogo</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+        <!-- GUIDANCE BANNER + NOVEDADES MINI CAPSULE -->
+        <div class="bg-blue-900/10 border-l-4 border-industrial-blue p-4 rounded-r-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 relative">
+            <div class="flex items-start space-x-3">
+                <div class="text-industrial-blue mt-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Panel de Cápsulas Independientes de Inspección</h2>
+                    <p class="text-xs text-slate-600">Cada componente posee su propia cápsula autónoma estilo Dock. Seleccione una cápsula para desplegar su flujo interno de registro.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="hidden sm:flex items-center space-x-2 text-xs font-semibold">
+                    <span class="flex items-center space-x-1 text-slate-500"><span class="w-3 h-3 bg-slate-300 rounded-full inline-block"></span> <span>Pendiente</span></span>
+                    <span class="flex items-center space-x-1 text-emerald-600"><span class="w-3 h-3 bg-emerald-500 rounded-full inline-block"></span> <span>Inspeccionado OK</span></span>
+                    <span class="flex items-center space-x-1 text-amber-600"><span class="w-3 h-3 bg-amber-500 rounded-full inline-block"></span> <span>Con Trabajos</span></span>
+                </div>
+
+                <!-- MINI CÁPSULA DE NOVEDADES EN LA ÓRDEN DE TRABAJO -->
+                <div class="relative">
+                    <button onclick="toggleNovedadesMenu()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow flex items-center space-x-1.5 border border-amber-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <span>⚠ NOVEDADES ▾</span>
+                    </button>
+
+                    <!-- Desplegable Mini Cápsula -->
+                    <div id="novedadesDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 p-2 space-y-1">
+                        <div class="px-3 py-1.5 border-b border-slate-100 flex justify-between items-center">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400">REGISTRAR NOVEDAD</span>
+                            <button onclick="toggleNovedadesMenu()" class="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                        </div>
+                        
+                        <!-- Opción 1: Imprevisto durante el trabajo -->
+                        <button onclick="toggleNovedadesMenu(); openModalImprevisto()" class="w-full text-left p-2.5 hover:bg-amber-50 rounded-xl transition-all flex items-start space-x-2.5">
+                            <div class="p-1.5 bg-amber-100 text-amber-700 rounded-lg mt-0.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">🕒 IMPREVISTO DURANTE EL TRABAJO</p>
+                                <p class="text-[11px] text-slate-500">Registrar demora, falta de pernos o interrupción.</p>
+                            </div>
+                        </button>
+
+                        <div class="border-t border-slate-100 my-1"></div>
+
+                        <!-- Opción 2: Trabajo no realizado -->
+                        <button onclick="toggleNovedadesMenu(); openModalNoRealizado()" class="w-full text-left p-2.5 hover:bg-red-50 rounded-xl transition-all flex items-start space-x-2.5">
+                            <div class="p-1.5 bg-red-100 text-industrial-red rounded-lg mt-0.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg></div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">🚫 TRABAJO NO REALIZADO</p>
+                                <p class="text-[11px] text-slate-500">Registrar reparación solicitada no ejecutada.</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INDEPENDENT CAPSULES GRID (3 Columns x 2 Rows) -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Cápsulas de Componentes (3x2 Grid)</h3>
+                <span id="componentsProgress" class="text-xs font-medium text-slate-600">0 de 6 componentes intervenidos</span>
+            </div>
+            <!-- 3 COLUMNS x 2 ROWS GRID -->
+            <div id="componentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Independent Capsules rendered via JS -->
+            </div>
+        </div>
+
+        <!-- DASHBOARD KPIS & METRICS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Total Intervenciones</p>
+                    <h4 id="kpiTotalInterventions" class="text-2xl font-black text-slate-800 mt-1">0</h4>
+                </div>
+                <div class="bg-blue-50 text-industrial-blue p-3 rounded-2xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Unidades Totales</p>
+                    <h4 id="kpiTotalUnits" class="text-2xl font-black text-slate-800 mt-1">0</h4>
+                </div>
+                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-2xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Producción Estándar</p>
+                    <h4 id="kpiTotalHours" class="text-2xl font-black text-industrial-red mt-1">0.00 h</h4>
+                </div>
+                <div class="bg-red-50 text-industrial-red p-3 rounded-2xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Estado Plataforma</p>
+                    <h4 id="kpiPlatformStatusLabel" class="text-sm font-bold text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded inline-block">EN INSPECCIÓN</h4>
+                </div>
+                <div class="bg-amber-50 text-amber-600 p-3 rounded-2xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIONES SECUNDARIAS DE IMPREVISTOS Y NOVEDADES REGISTRADAS -->
+        <div id="sectionNovedades" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Imprevistos durante el trabajo -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-amber-700 flex items-center space-x-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Imprevistos Registrados (Afectación)</span>
+                    </h4>
+                    <span id="imprevistosCountBadge" class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">0</span>
+                </div>
+                <div id="imprevistosList" class="space-y-2 text-xs max-h-48 overflow-y-auto custom-scrollbar">
+                    <p class="text-slate-400 italic text-[11px]">Sin imprevistos reportados en esta orden.</p>
+                </div>
+            </div>
+
+            <!-- Trabajos no realizados -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-industrial-red flex items-center space-x-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                        <span>Trabajos No Realizados (Pendientes)</span>
+                    </h4>
+                    <span id="noRealizadosCountBadge" class="text-[10px] bg-red-100 text-industrial-red px-2 py-0.5 rounded-full font-bold">0</span>
+                </div>
+                <div id="noRealizadosList" class="space-y-2 text-xs max-h-48 overflow-y-auto custom-scrollbar">
+                    <p class="text-slate-400 italic text-[11px]">Sin trabajos no realizados registrados.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTERED WORKS TABLE -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/70">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <span>Resumen de Trabajos Registrados - Plataforma <span id="tablePlatformName" class="text-industrial-blue">DP-077</span></span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Listado acumulado de intervenciones de soldadura y reparaciones.</p>
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                    <button onclick="savePlatformRecord()" class="bg-industrial-blue hover:bg-blue-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 w-full sm:w-auto justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        <span>GUARDAR PLATAFORMA</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs md:text-sm">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+                            <th class="py-3 px-4">Componente</th>
+                            <th class="py-3 px-4">Elemento</th>
+                            <th class="py-3 px-4">Intervención</th>
+                            <th class="py-3 px-4 text-center">Cant.</th>
+                            <th class="py-3 px-4 text-center">Complejidad</th>
+                            <th class="py-3 px-4 text-center">Técnicos</th>
+                            <th class="py-3 px-4 text-right">Prod. Estándar</th>
+                            <th class="py-3 px-4">Observación</th>
+                            <th class="py-3 px-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worksTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyTableState" class="hidden py-12 text-center">
+                <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <h4 class="text-slate-600 font-semibold text-sm">No hay trabajos registrados todavía</h4>
+                <p class="text-slate-400 text-xs mt-1">Expanda cualquier cápsula de componente arriba para registrar la primera intervención.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 mt-auto border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>DISTRILÓGICO S.A. © 2026 - Sistema Unificado de Talleres (Mecánica y Soldadura)</p>
+            <p class="text-slate-500">Versión 2.5 Industrial Dock Edition</p>
+        </div>
+    </footer>
+
+    <!-- MODAL IMPREVISTO DURANTE TRABAJO (POPULADO DINÁMICAMENTE) -->
+    <div id="modalImprevisto" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="bg-industrial-navy text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center space-x-2">
+                    <span class="text-amber-400">🕒</span>
+                    <span>Registrar Imprevisto durante el Trabajo</span>
+                </h3>
+                <button onclick="closeModalImprevisto()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="p-6 space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Vehículo / Plataforma</label>
+                    <input type="text" id="impPlatform" readonly class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-700">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Trabajo Registrado en Plataforma</label>
+                    <select id="impWorkSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-800 cursor-pointer">
+                        <!-- Populated dynamically from actual registered platform works -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Técnico Afectado</label>
+                    <input type="text" id="impTech" value="Técnico A (Soldadura)" class="w-full border border-slate-300 rounded-xl px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Motivo (Texto libre obligatorio)</label>
+                    <input type="text" id="impReason" placeholder="Ej. Falta de pernos de sujeción necesarios..." class="w-full border border-slate-300 rounded-xl px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Tiempo de afectación (minutos)</label>
+                    <input type="number" id="impDuration" value="30" min="5" class="w-full border border-slate-300 rounded-xl px-3 py-2 font-bold">
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end space-x-2">
+                <button onclick="closeModalImprevisto()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs">Cancelar</button>
+                <button onclick="submitImprevisto()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow">Guardar Imprevisto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TRABAJO NO REALIZADO (POPULADO DESDE TRABAJOS REGISTRADOS) -->
+    <div id="modalNoRealizado" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="bg-industrial-navy text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center space-x-2">
+                    <span class="text-industrial-red">🚫</span>
+                    <span>Registrar Trabajo No Realizado</span>
+                </h3>
+                <button onclick="closeModalNoRealizado()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="p-6 space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Vehículo / Plataforma</label>
+                    <input type="text" id="nrPlatform" readonly class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-700">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Trabajo Solicitado en la Orden</label>
+                    <select id="nrWorkSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-800 cursor-pointer">
+                        <!-- Populated dynamically from actual registered platform works -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 uppercase mb-1">Motivo de no ejecución (Texto libre obligatorio)</label>
+                    <textarea id="nrReasonText" rows="3" placeholder="Ej. No hay electrodos 6013 disponibles en almacén..." class="w-full border border-slate-300 rounded-xl px-3 py-2"></textarea>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end space-x-2">
+                <button onclick="closeModalNoRealizado()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs">Cancelar</button>
+                <button onclick="submitNoRealizado()" class="bg-industrial-red hover:bg-industrial-darkred text-white font-bold px-4 py-2 rounded-xl text-xs shadow">Registrar Trabajo Pendiente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT WORK -->
+    <div id="editModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 transform transition-all">
+            <div class="bg-industrial-navy text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-industrial-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <span>Editar Registro de Trabajo</span>
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="editWorkId">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Cantidad</label>
+                    <div class="flex items-center space-x-3">
+                        <button type="button" onclick="adjustEditQty(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center">-</button>
+                        <input type="number" id="editQtyInput" min="1" class="w-20 text-center font-bold text-lg border border-slate-300 rounded-xl py-1.5 focus:outline-none focus:border-industrial-blue">
+                        <button type="button" onclick="adjustEditQty(1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center">+</button>
+                    </div>
+                </div>
+                <div id="editComplexityContainer">
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Nivel de Complejidad</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setEditComplexity('Leve')" id="editBtnLeve" class="py-2 border border-slate-300 rounded-xl text-xs font-bold transition-all text-slate-700 hover:bg-slate-100">Leve</button>
+                        <button type="button" onclick="setEditComplexity('Moderado')" id="editBtnModerado" class="py-2 border border-slate-300 rounded-xl text-xs font-bold transition-all text-slate-700 hover:bg-slate-100">Moderado</button>
+                        <button type="button" onclick="setEditComplexity('Grave')" id="editBtnGrave" class="py-2 border border-slate-300 rounded-xl text-xs font-bold transition-all text-slate-700 hover:bg-slate-100">Grave</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Técnicos Asignados</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="setEditTechs(1)" id="editTech1" class="py-2 border border-slate-300 rounded-xl text-xs font-bold transition-all text-slate-700">1 Técnico</button>
+                        <button type="button" onclick="setEditTechs(2)" id="editTech2" class="py-2 border border-slate-300 rounded-xl text-xs font-bold transition-all text-slate-700">2 Técnicos</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Observación</label>
+                    <input type="text" id="editObsInput" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-industrial-blue">
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end space-x-2">
+                <button onclick="closeEditModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs">Cancelar</button>
+                <button onclick="saveEditedWork()" class="bg-industrial-blue hover:bg-blue-900 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CATALOG MANAGEMENT -->
+    <div id="catalogModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200">
+            <div class="bg-industrial-navy text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-industrial-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    <span>Gestión de Catálogo Extensible</span>
+                </h3>
+                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <p class="text-xs text-slate-500">Aquí puede visualizar la estructura de elementos e intervenciones actuales y agregar nuevas intervenciones con sus respectivos tiempos estándar en horas.</p>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Agregar Nueva Intervención al Catálogo</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Componente</label>
+                            <select id="newCatComponent" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium">
+                                <option value="COMPUERTAS">COMPUERTAS</option>
+                                <option value="PERFILES">PERFILES</option>
+                                <option value="TRAVESAÑOS">TRAVESAÑOS</option>
+                                <option value="TANQUE DE LIXIVIADOS">TANQUE DE LIXIVIADOS</option>
+                                <option value="CABINA">CABINA</option>
+                                <option value="UPN">UPN</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Elemento Específico</label>
+                            <input type="text" id="newCatElement" placeholder="Ej. Bisagras o General" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Nombre de Intervención</label>
+                            <input type="text" id="newCatIntervention" placeholder="Ej. Refuerzo especial" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Tiempo Estándar (Horas)</label>
+                            <input type="number" id="newCatTime" step="0.1" min="0.1" value="1.0" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium">
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="addNewCatalogItem()" class="bg-industrial-red hover:bg-industrial-darkred text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow">Agregar al Catálogo</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Catálogo Actual Configurado</h4>
+                    <div id="catalogListContainer" class="space-y-2 text-xs">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeCatalogModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 flex items-center space-x-3 transform translate-y-24 opacity-0 transition-all duration-300 border border-slate-700">
+        <div id="toastIcon" class="text-emerald-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <div>
+            <h5 id="toastTitle" class="font-bold text-sm">Operación Exitosa</h5>
+            <p id="toastMessage" class="text-xs text-slate-300">El trabajo ha sido registrado correctamente.</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- BASE CATALOG & DATA ---
+        const initialCatalog = {
+            "COMPUERTAS": {
+                elements: ["Parantes", "Bisagras", "Orejas de compuertas", "Pin con cadena"],
+                requiresComplexity: true,
+                interventions: {
+                    "Resoldar": 0.5,
+                    "Reparar soporte": 1.0,
+                    "Fabricar": 2.5,
+                    "Reponer": 1.5,
+                    "Reparar pin": 0.4,
+                    "Reparar cadena": 0.3,
+                    "Reponer cadena": 0.4,
+                    "Reponer conjunto": 2.0
+                }
+            },
+            "PERFILES": {
+                elements: ["Perfil Lateral", "Perfil Superior", "Perfil Inferior", "Base de Luz"],
+                requiresComplexity: true,
+                interventions: {
+                    "Reparación de perfil": 1.2,
+                    "Colocación de parche": 0.8,
+                    "Reposición de sección": 2.0,
+                    "Reparación de base de luz de ruta": 0.6
+                }
+            },
+            "TRAVESAÑOS": {
+                elements: ["Chasis falso", "Travesaños", "Guardalodos"],
+                requiresComplexity: true,
+                interventions: {
+                    "Reparar": 1.5,
+                    "Enderezar": 1.2,
+                    "Reforzar": 2.0,
+                    "Fabricar": 3.0,
+                    "Reponer": 2.5
+                }
+            },
+            "TANQUE DE LIXIVIADOS": {
+                elements: ["Válvulas", "Mangueras", "Defogue", "Conexiones"],
+                requiresComplexity: false,
+                interventions: {
+                    "Cambio de manguera": 0.8,
+                    "Reparación de válvula": 1.2,
+                    "Reposición de válvula": 1.5,
+                    "Reparación de defogue": 1.0,
+                    "Reparación de conexiones": 0.9
+                }
+            },
+            "CABINA": {
+                elements: ["Estructura", "Parches de cabina", "Soportes"],
+                requiresComplexity: true,
+                interventions: {
+                    "Reparación de cabina": 2.5,
+                    "Colocación de parches": 1.2,
+                    "Reparación de estructura": 3.5
+                }
+            },
+            "UPN": {
+                elements: ["Perfil UPN 100", "Perfil UPN 120", "Perfil UPN 150"],
+                requiresComplexity: true,
+                interventions: {
+                    "Enderezar": 1.5,
+                    "Reparar": 1.8,
+                    "Reforzar": 2.2,
+                    "Reponer": 3.0
+                }
+            }
+        };
+
+        const componentIcons = {
+            "COMPUERTAS": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"></path></svg>`,
+            "PERFILES": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>`,
+            "TRAVESAÑOS": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`,
+            "TANQUE DE LIXIVIADOS": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>`,
+            "CABINA": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>`,
+            "UPN": `<svg class="w-6 h-6 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>`
+        };
+
+        // Application State per platform
+        let appData = {
+            "DP-077": { status: "En inspección", works: [], imprevistos: [], noRealizados: [], componentStates: {} },
+            "DP-078": { status: "En inspección", works: [], imprevistos: [], noRealizados: [], componentStates: {} },
+            "DP-079": { status: "En inspección", works: [], imprevistos: [], noRealizados: [], componentStates: {} },
+            "DP-080": { status: "En inspección", works: [], imprevistos: [], noRealizados: [], componentStates: {} }
+        };
+
+        let currentPlatform = "DP-077";
+        let currentUserRole = "supervisor";
+        let catalog = JSON.parse(JSON.stringify(initialCatalog));
+
+        // Active Card Flow States
+        let cardFlowStates = {};
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initComponentStates();
+            renderComponentsGrid();
+            renderWorksTable();
+            renderNovedadesLists();
+            updateKPIs();
+
+            document.getElementById('platformSelect').addEventListener('change', (e) => {
+                currentPlatform = e.target.value;
+                document.getElementById('tablePlatformName').innerText = currentPlatform;
+                initComponentStates();
+                renderComponentsGrid();
+                renderWorksTable();
+                renderNovedadesLists();
+                updateKPIs();
+                updatePlatformStatusUI();
+            });
+        });
+
+        function toggleUserRole(role) {
+            currentUserRole = role;
+            renderNovedadesLists();
+            showToast("Rol Cambiado", `Viendo interfaz como: ${role === 'jefe_patio' ? 'Jefe de Patio (Validador)' : 'Supervisor'}`);
+        }
+
+        function initComponentStates() {
+            if (!appData[currentPlatform].componentStates) {
+                appData[currentPlatform].componentStates = {};
+            }
+            if (!appData[currentPlatform].imprevistos) appData[currentPlatform].imprevistos = [];
+            if (!appData[currentPlatform].noRealizados) appData[currentPlatform].noRealizados = [];
+
+            Object.keys(catalog).forEach(comp => {
+                if (!appData[currentPlatform].componentStates[comp]) {
+                    appData[currentPlatform].componentStates[comp] = { status: 'pending', inspectedOk: false };
+                }
+                if (!cardFlowStates[comp]) {
+                    cardFlowStates[comp] = { step: 'initial', selectedElement: null, selectedIntervention: null, qty: 1, complexity: 'Moderado', techs: 1, obs: '' };
+                }
+            });
+        }
+
+        // --- MINI CÁPSULA DE NOVEDADES EN ÓRDEN DE TRABAJO ---
+        function toggleNovedadesMenu() {
+            const menu = document.getElementById('novedadesDropdown');
+            menu.classList.toggle('hidden');
+        }
+
+        function openModalImprevisto() {
+            document.getElementById('impPlatform').value = currentPlatform;
+            const select = document.getElementById('impWorkSelect');
+            select.innerHTML = '';
+
+            const works = appData[currentPlatform].works;
+            if (works.length === 0) {
+                select.innerHTML = '<option value="">⚠️ No hay trabajos registrados todavía en esta plataforma (Agregue un trabajo primero)</option>';
+            } else {
+                works.forEach(w => {
+                    select.innerHTML += `<option value="${w.component} > ${w.element} > ${w.intervention}">${w.component} > ${w.element} > ${w.intervention} (${w.qty} u.)</option>`;
+                });
+            }
+
+            document.getElementById('modalImprevisto').classList.remove('hidden');
+        }
+
+        function closeModalImprevisto() {
+            document.getElementById('modalImprevisto').classList.add('hidden');
+        }
+
+        function submitImprevisto() {
+            const workVal = document.getElementById('impWorkSelect').value;
+            const reason = document.getElementById('impReason').value.trim();
+
+            if (!workVal || workVal.startsWith("⚠️")) {
+                alert('Debe seleccionar un trabajo válido registrado en la plataforma.');
+                return;
+            }
+            if (!reason) {
+                alert('Debe ingresar el motivo del imprevisto.');
+                return;
+            }
+
+            const item = {
+                id: 'imp_' + Date.now(),
+                work: workVal,
+                tech: document.getElementById('impTech').value,
+                reason: reason,
+                duration: parseInt(document.getElementById('impDuration').value) || 30,
+                status: 'Pendiente'
+            };
+
+            appData[currentPlatform].imprevistos.push(item);
+            closeModalImprevisto();
+            renderNovedadesLists();
+            showToast("Imprevisto Registrado", "Guardado y listo para validación del Jefe de Patio.");
+        }
+
+        function openModalNoRealizado() {
+            document.getElementById('nrPlatform').value = currentPlatform;
+            const select = document.getElementById('nrWorkSelect');
+            select.innerHTML = '';
+
+            const works = appData[currentPlatform].works;
+            if (works.length === 0) {
+                select.innerHTML = '<option value="">⚠️ No hay trabajos registrados en la orden (Agregue un trabajo primero)</option>';
+            } else {
+                works.forEach(w => {
+                    select.innerHTML += `<option value="${w.component} > ${w.element} > ${w.intervention}">${w.component} > ${w.element} > ${w.intervention} (${w.qty} u.)</option>`;
+                });
+            }
+
+            document.getElementById('nrReasonText').value = '';
+            document.getElementById('modalNoRealizado').classList.remove('hidden');
+        }
+
+        function closeModalNoRealizado() {
+            document.getElementById('modalNoRealizado').classList.add('hidden');
+        }
+
+        function submitNoRealizado() {
+            const workSel = document.getElementById('nrWorkSelect').value;
+            const reason = document.getElementById('nrReasonText').value.trim();
+
+            if (!workSel || workSel.startsWith("⚠️")) {
+                alert('Debe seleccionar un trabajo válido registrado en la orden de trabajo.');
+                return;
+            }
+            if (!reason) {
+                alert('Debe ingresar el motivo de no ejecución.');
+                return;
+            }
+
+            const item = {
+                id: 'nr_' + Date.now(),
+                workTitle: workSel,
+                reasonText: reason,
+                status: 'PENDIENTE DE ATENCIÓN'
+            };
+
+            appData[currentPlatform].noRealizados.push(item);
+            closeModalNoRealizado();
+            renderNovedadesLists();
+            showToast("Trabajo No Realizado", "Agregado a la lista de seguimiento de pendientes.");
+        }
+
+        function approveImprevisto(id) {
+            const imp = appData[currentPlatform].imprevistos.find(i => i.id === id);
+            if (imp) {
+                imp.status = 'Aprobado';
+                renderNovedadesLists();
+                showToast("Aprobado", "Imprevisto validado por Jefe de Patio.");
+            }
+        }
+
+        function rejectImprevisto(id) {
+            const imp = appData[currentPlatform].imprevistos.find(i => i.id === id);
+            if (imp) {
+                imp.status = 'Rechazado';
+                renderNovedadesLists();
+                showToast("Rechazado", "Novedad rechazada.", "warning");
+            }
+        }
+
+        function renderNovedadesLists() {
+            const impContainer = document.getElementById('imprevistosList');
+            const nrContainer = document.getElementById('noRealizadosList');
+            const imps = appData[currentPlatform].imprevistos || [];
+            const nrs = appData[currentPlatform].noRealizados || [];
+
+            document.getElementById('imprevistosCountBadge').innerText = imps.length;
+            document.getElementById('noRealizadosCountBadge').innerText = nrs.length;
+
+            if (imps.length === 0) {
+                impContainer.innerHTML = '<p class="text-slate-400 italic text-[11px]">Sin imprevistos reportados en esta orden.</p>';
+            } else {
+                impContainer.innerHTML = imps.map(i => `
+                    <div class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-slate-800">${i.work}</p>
+                            <p class="text-slate-600 text-[11px]">Téc: ${i.tech} | Motivo: ${i.reason} (${i.duration} min)</p>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${i.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : i.status === 'Rechazado' ? 'bg-red-100 text-industrial-red' : 'bg-amber-200 text-amber-900'}">${i.status}</span>
+                            ${currentUserRole === 'jefe_patio' && i.status === 'Pendiente' ? `
+                                <button onclick="approveImprevisto('${i.id}')" class="bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">✓</button>
+                                <button onclick="rejectImprevisto('${i.id}')" class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">✕</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (nrs.length === 0) {
+                nrContainer.innerHTML = '<p class="text-slate-400 italic text-[11px]">Sin trabajos no realizados registrados.</p>';
+            } else {
+                nrContainer.innerHTML = nrs.map(n => `
+                    <div class="bg-red-50/60 p-2.5 rounded-xl border border-red-200 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-slate-800">${n.workTitle}</p>
+                            <p class="text-slate-600 text-[11px]">Causa: ${n.reasonText}</p>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-industrial-red">${n.status}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- RENDER INDEPENDENT CAPSULES (iOS DOCK STYLE GRID 3x2) ---
+        function renderComponentsGrid() {
+            const grid = document.getElementById('componentsGrid');
+            grid.innerHTML = '';
+
+            let intervenedCount = 0;
+            const components = Object.keys(catalog);
+
+            components.forEach(compName => {
+                const works = appData[currentPlatform].works.filter(w => w.component === compName);
+                const count = works.length;
+                const compState = appData[currentPlatform].componentStates[compName] || { status: 'pending', inspectedOk: false };
+                
+                if (count > 0 || compState.inspectedOk) intervenedCount++;
+
+                let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Pendiente</span>`;
+                let capsuleBorder = "border-slate-200 hover:border-slate-300 shadow-md hover:shadow-lg";
+                
+                if (count > 0) {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200">${count} trabajo${count > 1 ? 's' : ''}</span>`;
+                    capsuleBorder = "border-amber-300 shadow-lg bg-amber-50/10 hover:border-amber-400";
+                } else if (compState.inspectedOk) {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Inspeccionado OK</span>`;
+                    capsuleBorder = "border-emerald-300 shadow-lg bg-emerald-50/10 hover:border-emerald-400";
+                }
+
+                const flow = cardFlowStates[compName];
+                const isExpanded = flow.step !== 'initial';
+
+                if (isExpanded) {
+                    capsuleBorder = "border-industrial-blue ring-2 ring-industrial-blue/30 shadow-xl bg-white";
+                }
+
+                const capsuleDiv = document.createElement('div');
+                capsuleDiv.className = `dock-capsule border ${capsuleBorder} overflow-hidden flex flex-col justify-between`;
+
+                let innerHtml = `
+                    <div class="p-4 flex items-center justify-between border-b border-slate-100/60">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-slate-50 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-center">
+                                ${componentIcons[compName] || componentIcons["COMPUERTAS"]}
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-slate-800 text-sm tracking-tight">${compName}</h4>
+                                <div class="mt-0.5">${statusBadge}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            ${!isExpanded ? `
+                                <button onclick="markInspectedOk('${compName}')" title="Marcar Inspeccionado sin novedades" class="p-2 hover:bg-emerald-100 text-emerald-600 rounded-xl transition-colors text-xs font-semibold flex items-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                </button>
+                                <button onclick="expandCard('${compName}')" class="bg-industrial-blue hover:bg-blue-900 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1">
+                                    <span>Inspeccionar</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            ` : `
+                                <button onclick="collapseCard('${compName}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1">
+                                    <span>Cerrar</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                if (isExpanded) {
+                    innerHtml += `<div class="p-4 bg-white/90 space-y-4 animate-fadeIn">`;
+                    
+                    if (flow.step === 'element') {
+                        const elements = catalog[compName].elements || [];
+                        innerHtml += `
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <span class="text-[11px] font-bold text-industrial-blue uppercase tracking-wider">¿Qué elemento necesita atención?</span>
+                                <button onclick="resetCardFlow('${compName}')" class="text-slate-400 hover:text-slate-600 text-[11px] font-medium">[ ✕ Cancelar ]</button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                        `;
+                        elements.forEach(el => {
+                            innerHtml += `<button onclick="selectElement('${compName}', '${el}')" class="p-2.5 text-left bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-industrial-blue rounded-xl text-xs font-semibold text-slate-700 transition-all flex items-center justify-between shadow-xs">
+                                <span>${el}</span>
+                                <svg class="w-3.5 h-3.5 text-industrial-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                            </button>`;
+                        });
+                        innerHtml += `</div>`;
+                    }
+                    else if (flow.step === 'intervention') {
+                        const interventionsObj = catalog[compName].interventions || {};
+                        const interventions = Object.keys(interventionsObj);
+                        innerHtml += `
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="backToElements('${compName}')" class="text-industrial-blue hover:underline text-xs font-bold flex items-center space-x-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg> <span>[ ← Volver ]</span></button>
+                                    <span class="text-xs font-bold text-slate-400">|</span>
+                                    <span class="text-xs font-bold text-slate-700 truncate max-w-[120px]">${flow.selectedElement}</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-industrial-blue uppercase tracking-wider">Intervención</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        `;
+                        interventions.forEach(inv => {
+                            const hours = interventionsObj[inv];
+                            innerHtml += `<button onclick="selectIntervention('${compName}', '${inv}')" class="p-2.5 text-left bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-industrial-blue rounded-xl text-xs font-semibold text-slate-700 transition-all flex items-center justify-between shadow-xs">
+                                <span class="truncate pr-1">${inv}</span>
+                                <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-md font-mono shrink-0">${hours}h</span>
+                            </button>`;
+                        });
+                        innerHtml += `</div>`;
+                    }
+                    else if (flow.step === 'form') {
+                        const requiresComplexity = catalog[compName].requiresComplexity;
+                        innerHtml += `
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <div class="flex items-center space-x-1.5">
+                                    <button onclick="backToInterventions('${compName}')" class="text-industrial-blue hover:underline text-xs font-bold flex items-center space-x-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg> <span>[ ← Volver ]</span></button>
+                                    <span class="text-xs font-bold text-slate-400">|</span>
+                                    <span class="text-[11px] font-bold text-slate-700 truncate max-w-[130px]">${flow.selectedElement} > ${flow.selectedIntervention}</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-industrial-blue uppercase tracking-wider">Datos</span>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-600 uppercase">Cantidad:</label>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" onclick="adjustQty('${compName}', -1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-lg font-bold flex items-center justify-center">-</button>
+                                        <span class="font-bold text-sm w-8 text-center">${flow.qty}</span>
+                                        <button type="button" onclick="adjustQty('${compName}', 1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-lg font-bold flex items-center justify-center">+</button>
+                                    </div>
+                                </div>
+                        `;
+
+                        if (requiresComplexity) {
+                            innerHtml += `
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Complejidad:</label>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <button type="button" onclick="setComplexity('${compName}', 'Leve')" class="py-1.5 border rounded-xl text-xs font-bold transition-all ${flow.complexity === 'Leve' ? 'bg-industrial-blue text-white border-industrial-blue shadow' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">Leve</button>
+                                        <button type="button" onclick="setComplexity('${compName}', 'Moderado')" class="py-1.5 border rounded-xl text-xs font-bold transition-all ${flow.complexity === 'Moderado' ? 'bg-industrial-blue text-white border-industrial-blue shadow' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">Moderado</button>
+                                        <button type="button" onclick="setComplexity('${compName}', 'Grave')" class="py-1.5 border rounded-xl text-xs font-bold transition-all ${flow.complexity === 'Grave' ? 'bg-industrial-blue text-white border-industrial-blue shadow' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">Grave</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        innerHtml += `
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-600 uppercase">Técnicos Asignados:</label>
+                                    <div class="grid grid-cols-2 gap-2 w-40">
+                                        <button type="button" onclick="setTechs('${compName}', 1)" class="py-1 border rounded-xl text-xs font-bold ${flow.techs === 1 ? 'bg-slate-800 text-white' : 'bg-slate-50 text-slate-700 border-slate-200'}">1 Técnico</button>
+                                        <button type="button" onclick="setTechs('${compName}', 2)" class="py-1 border rounded-xl text-xs font-bold ${flow.techs === 2 ? 'bg-slate-800 text-white' : 'bg-slate-50 text-slate-700 border-slate-200'}">2 Técnicos</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Observación (opcional):</label>
+                                    <input type="text" id="obs_${compName}" value="${flow.obs}" oninput="updateObs('${compName}', this.value)" placeholder="Ej. Soldadura en cordón..." class="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-industrial-blue">
+                                </div>
+
+                                <div class="pt-1">
+                                    <button onclick="addWorkItem('${compName}')" class="w-full bg-industrial-red hover:bg-industrial-darkred text-white py-2.5 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                                        <span>+ AGREGAR TRABAJO</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    innerHtml += `</div>`;
+                }
+
+                capsuleDiv.innerHTML = innerHtml;
+                grid.appendChild(capsuleDiv);
+            });
+
+            document.getElementById('componentsProgress').innerText = `${intervenedCount} de 6 cápsulas inspeccionadas/intervenidas`;
+        }
+
+        // --- COMPONENT CARD FLOW ACTIONS ---
+        function expandCard(compName) {
+            Object.keys(cardFlowStates).forEach(c => {
+                if (c !== compName) {
+                    cardFlowStates[c].step = 'initial';
+                }
+            });
+            cardFlowStates[compName].step = 'element';
+            renderComponentsGrid();
+        }
+
+        function collapseCard(compName) {
+            resetCardFlow(compName);
+        }
+
+        function resetCardFlow(compName) {
+            cardFlowStates[compName] = { step: 'initial', selectedElement: null, selectedIntervention: null, qty: 1, complexity: 'Moderado', techs: 1, obs: '' };
+            renderComponentsGrid();
+        }
+
+        function markInspectedOk(compName) {
+            appData[currentPlatform].componentStates[compName].inspectedOk = true;
+            appData[currentPlatform].componentStates[compName].status = 'inspected_ok';
+            showToast("Inspección Registrada", `${compName} marcado como Inspeccionado OK sin novedades.`);
+            renderComponentsGrid();
+            updateKPIs();
+        }
+
+        function selectElement(compName, elementName) {
+            cardFlowStates[compName].selectedElement = elementName;
+            cardFlowStates[compName].step = 'intervention';
+            renderComponentsGrid();
+        }
+
+        function backToElements(compName) {
+            cardFlowStates[compName].step = 'element';
+            renderComponentsGrid();
+        }
+
+        function selectIntervention(compName, interventionName) {
+            cardFlowStates[compName].selectedIntervention = interventionName;
+            cardFlowStates[compName].step = 'form';
+            renderComponentsGrid();
+        }
+
+        function backToInterventions(compName) {
+            cardFlowStates[compName].step = 'intervention';
+            renderComponentsGrid();
+        }
+
+        function adjustQty(compName, delta) {
+            let current = cardFlowStates[compName].qty + delta;
+            if (current < 1) current = 1;
+            cardFlowStates[compName].qty = current;
+            renderComponentsGrid();
+        }
+
+        function setComplexity(compName, level) {
+            cardFlowStates[compName].complexity = level;
+            renderComponentsGrid();
+        }
+
+        function setTechs(compName, count) {
+            cardFlowStates[compName].techs = count;
+            renderComponentsGrid();
+        }
+
+        function updateObs(compName, val) {
+            cardFlowStates[compName].obs = val;
+        }
+
+        function addWorkItem(compName) {
+            const flow = cardFlowStates[compName];
+            const baseTime = catalog[compName].interventions[flow.selectedIntervention] || 1.0;
+            
+            let multiplier = 1.0;
+            if (catalog[compName].requiresComplexity) {
+                if (flow.complexity === 'Leve') multiplier = 0.8;
+                if (flow.complexity === 'Moderado') multiplier = 1.0;
+                if (flow.complexity === 'Grave') multiplier = 1.4;
+            }
+
+            const standardHours = Number((baseTime * flow.qty * multiplier).toFixed(2));
+
+            const newWork = {
+                id: 'work_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                component: compName,
+                element: flow.selectedElement,
+                intervention: flow.selectedIntervention,
+                qty: flow.qty,
+                complexity: catalog[compName].requiresComplexity ? flow.complexity : 'No aplica',
+                techs: flow.techs,
+                standardHours: standardHours,
+                obs: flow.obs || 'Sin observación'
+            };
+
+            appData[currentPlatform].works.push(newWork);
+            appData[currentPlatform].componentStates[compName].inspectedOk = false;
+
+            resetCardFlow(compName);
+            renderWorksTable();
+            updateKPIs();
+
+            showToast("Trabajo Agregado", `Se registró "${flow.selectedIntervention}" en ${compName} exitosamente.`);
+        }
+
+        // --- RENDER WORKS TABLE ---
+        function renderWorksTable() {
+            const tbody = document.getElementById('worksTableBody');
+            const emptyState = document.getElementById('emptyTableState');
+            tbody.innerHTML = '';
+
+            const works = appData[currentPlatform].works;
+
+            if (works.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            works.forEach((w) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-800">${w.component}</td>
+                    <td class="py-3 px-4 text-slate-600">${w.element}</td>
+                    <td class="py-3 px-4 font-semibold text-industrial-blue">${w.intervention}</td>
+                    <td class="py-3 px-4 text-center font-bold">${w.qty}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.complexity === 'Grave' ? 'bg-red-100 text-industrial-red' : w.complexity === 'Moderado' ? 'bg-amber-100 text-amber-700' : w.complexity === 'Leve' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}">${w.complexity}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center"><span class="bg-slate-100 px-2 py-0.5 rounded font-bold">${w.techs} Téc.</span></td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">${w.standardHours.toFixed(2)} h</td>
+                    <td class="py-3 px-4 text-slate-500 italic max-w-xs truncate">${w.obs}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-1.5">
+                            <button onclick="openEditModal('${w.id}')" class="p-1.5 bg-blue-50 text-industrial-blue hover:bg-blue-100 rounded-lg transition-colors" title="Editar trabajo">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="deleteWorkItem('${w.id}')" class="p-1.5 bg-red-50 text-industrial-red hover:bg-red-100 rounded-lg transition-colors" title="Eliminar trabajo">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- UPDATE KPIS ---
+        function updateKPIs() {
+            const works = appData[currentPlatform].works;
+            const totalInterventions = works.length;
+            const totalUnits = works.reduce((sum, w) => sum + w.qty, 0);
+            const totalHours = works.reduce((sum, w) => sum + w.standardHours, 0);
+
+            document.getElementById('kpiTotalInterventions').innerText = totalInterventions;
+            document.getElementById('kpiTotalUnits').innerText = totalUnits;
+            document.getElementById('kpiTotalHours').innerText = totalHours.toFixed(2) + ' h';
+        }
+
+        // --- EDIT WORK MODAL LOGIC ---
+        let editingWorkId = null;
+
+        function openEditModal(id) {
+            const work = appData[currentPlatform].works.find(w => w.id === id);
+            if (!work) return;
+
+            editingWorkId = id;
+            document.getElementById('editWorkId').value = id;
+            document.getElementById('editQtyInput').value = work.qty;
+            document.getElementById('editObsInput').value = work.obs;
+
+            const compContainer = document.getElementById('editComplexityContainer');
+            if (work.complexity === 'No aplica') {
+                compContainer.classList.add('hidden');
+            } else {
+                compContainer.classList.remove('hidden');
+                setEditComplexity(work.complexity);
+            }
+
+            setEditTechs(work.techs);
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            editingWorkId = null;
+        }
+
+        let tempEditComplexity = 'Moderado';
+        let tempEditTechs = 1;
+
+        function adjustEditQty(delta) {
+            const input = document.getElementById('editQtyInput');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+
+        function setEditComplexity(level) {
+            tempEditComplexity = level;
+            ['Leve', 'Moderado', 'Grave'].forEach(l => {
+                const btn = document.getElementById(`editBtn${l}`);
+                if (l === level) {
+                    btn.className = 'py-2 border rounded-lg text-xs font-bold bg-industrial-blue text-white border-industrial-blue shadow';
+                } else {
+                    btn.className = 'py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100';
+                }
+            });
+        }
+
+        function setEditTechs(count) {
+            tempEditTechs = count;
+            [1, 2].forEach(c => {
+                const btn = document.getElementById(`editTech${c}`);
+                if (c === count) {
+                    btn.className = 'py-2 border rounded-lg text-xs font-bold bg-slate-800 text-white';
+                } else {
+                    btn.className = 'py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-700';
+                }
+            });
+        }
+
+        function saveEditedWork() {
+            const work = appData[currentPlatform].works.find(w => w.id === editingWorkId);
+            if (!work) return;
+
+            const newQty = parseInt(document.getElementById('editQtyInput').value) || 1;
+            const newObs = document.getElementById('editObsInput').value;
+
+            work.qty = newQty;
+            work.complexity = work.complexity !== 'No aplica' ? tempEditComplexity : 'No aplica';
+            work.techs = tempEditTechs;
+            work.obs = newObs;
+
+            const baseTime = catalog[work.component].interventions[work.intervention] || 1.0;
+            let multiplier = 1.0;
+            if (work.complexity === 'Leve') multiplier = 0.8;
+            if (work.complexity === 'Moderado') multiplier = 1.0;
+            if (work.complexity === 'Grave') multiplier = 1.4;
+
+            work.standardHours = Number((baseTime * newQty * multiplier).toFixed(2));
+
+            closeEditModal();
+            renderWorksTable();
+            updateKPIs();
+            showToast("Registro Actualizado", "Los cambios se guardaron correctamente.");
+        }
+
+        // --- DELETE WORK ITEM ---
+        function deleteWorkItem(id) {
+            appData[currentPlatform].works = appData[currentPlatform].works.filter(w => w.id !== id);
+            renderComponentsGrid();
+            renderWorksTable();
+            updateKPIs();
+            showToast("Trabajo Eliminado", "El registro fue borrado de la lista.", "warning");
+        }
+
+        // --- SAVE PLATFORM RECORD ---
+        function savePlatformRecord() {
+            appData[currentPlatform].status = "Guardada";
+            document.getElementById('platformStatusBadge').className = "px-3 py-1.5 rounded-lg font-bold text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1.5";
+            document.getElementById('platformStatusText').innerText = "GUARDADA Y CERRADA";
+            document.getElementById('kpiPlatformStatusLabel').innerText = "GUARDADA";
+            document.getElementById('kpiPlatformStatusLabel').className = "text-sm font-bold text-emerald-600 mt-1 bg-emerald-50 px-2 py-1 rounded inline-block";
+
+            showToast("Plataforma Guardada", `Parte de producción de ${currentPlatform} consolidado y guardado con éxito.`);
+        }
+
+        function updatePlatformStatusUI() {
+            const status = appData[currentPlatform].status;
+            const badge = document.getElementById('platformStatusBadge');
+            const text = document.getElementById('platformStatusText');
+            const kpiLabel = document.getElementById('kpiPlatformStatusLabel');
+
+            if (status === "Guardada") {
+                badge.className = "px-3 py-1.5 rounded-lg font-bold text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1.5";
+                text.innerText = "GUARDADA Y CERRADA";
+                kpiLabel.innerText = "GUARDADA";
+                kpiLabel.className = "text-sm font-bold text-emerald-600 mt-1 bg-emerald-50 px-2 py-1 rounded inline-block";
+            } else {
+                badge.className = "px-3 py-1.5 rounded-lg font-bold text-xs bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center space-x-1.5";
+                text.innerText = "EN INSPECCIÓN";
+                kpiLabel.innerText = "EN INSPECCIÓN";
+                kpiLabel.className = "text-sm font-bold text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded inline-block";
+            }
+        }
+
+        // --- CATALOG MODAL LOGIC ---
+        function openCatalogModal() {
+            renderCatalogList();
+            document.getElementById('catalogModal').classList.remove('hidden');
+        }
+
+        function closeCatalogModal() {
+            document.getElementById('catalogModal').classList.add('hidden');
+        }
+
+        function renderCatalogList() {
+            const container = document.getElementById('catalogListContainer');
+            container.innerHTML = '';
+
+            Object.keys(catalog).forEach(comp => {
+                const interventions = catalog[comp].interventions;
+                let html = `<div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+                    <h5 class="font-bold text-slate-800 text-xs">${comp} <span class="text-slate-400 font-normal">(${catalog[comp].requiresComplexity ? 'Con complejidad' : 'Sin complejidad'})</span></h5>
+                    <div class="flex flex-wrap gap-1 mt-1">`;
+                
+                Object.keys(interventions).forEach(inv => {
+                    html += `<span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] text-slate-700 font-medium">${inv}: <strong class="text-industrial-blue">${interventions[inv]}h</strong></span>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function addNewCatalogItem() {
+            const comp = document.getElementById('newCatComponent').value;
+            const element = document.getElementById('newCatElement').value.trim() || 'General';
+            const intervention = document.getElementById('newCatIntervention').value.trim();
+            const time = parseFloat(document.getElementById('newCatTime').value);
+
+            if (!intervention || isNaN(time)) {
+                showToast("Error", "Por favor ingrese un nombre de intervención y un tiempo válido.", "error");
+                return;
+            }
+
+            if (!catalog[comp].elements.includes(element)) {
+                catalog[comp].elements.push(element);
+            }
+
+            catalog[comp].interventions[intervention] = time;
+            document.getElementById('newCatIntervention').value = '';
+            renderCatalogList();
+            showToast("Catálogo Actualizado", `Nueva intervención "${intervention}" agregada a ${comp}.`);
+        }
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastTitle.innerText = title;
+            toastMessage.innerText = message;
+
+            if (type === 'warning' || type === 'error') {
+                toastIcon.innerHTML = `<svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            } else {
+                toastIcon.innerHTML = `<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>`;
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

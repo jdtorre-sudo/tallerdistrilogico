@@ -1,0 +1,67 @@
+# Respaldo completo de la base (pg_dump + CSV por tabla) a Google Drive.
+# Corre cada domingo y también cuando se pide desde la app (Exportación).
+name: Respaldo semanal
+on:
+  schedule:
+    - cron: '23 8 * * 0'    # domingos 03:23 hora de Ecuador
+  workflow_dispatch:
+    inputs:
+      tipo:
+        description: 'semanal o manual'
+        default: 'manual'
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      TIPO: ${{ github.event.inputs.tipo || 'semanal' }}
+    steps:
+      - name: Instalar cliente de PostgreSQL 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: Generar respaldo
+        run: |
+          FECHA=$(TZ=America/Guayaquil date +%Y-%m-%d_%H%M)
+          NOMBRE="respaldo_taller_${FECHA}"
+          mkdir -p "$NOMBRE/csv"
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --no-owner --no-privileges -f "$NOMBRE/base_completa.sql"
+          # Para que se pueda restaurar en una base que ya tiene el esquema public (Supabase u otra)
+          sed -i 's/^CREATE SCHEMA public;/CREATE SCHEMA IF NOT EXISTS public;/' "$NOMBRE/base_completa.sql"
+          # Usuarios de inicio de sesión (solo para restaurar en otro Supabase; contraseñas cifradas)
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --data-only --table=auth.users --table=auth.identities --no-owner -f "$NOMBRE/usuarios_inicio_sesion.sql" || echo "Aviso: no se pudieron respaldar los usuarios de inicio de sesión"
+          for t in $(psql "$DB_URL" -At -c "select tablename from pg_tables where schemaname='public' order by 1"); do
+            psql "$DB_URL" -c "\copy (select * from public.$t) to '$NOMBRE/csv/$t.csv' with csv header"
+          done
+          psql "$DB_URL" -c "\copy (select * from public.v_diccionario_datos) to '$NOMBRE/diccionario_datos.csv' with csv header"
+          zip -qr "$NOMBRE.zip" "$NOMBRE"
+          echo "NOMBRE=$NOMBRE" >> $GITHUB_ENV
+          echo "BYTES=$(stat -c %s $NOMBRE.zip)" >> $GITHUB_ENV
+      - name: Subir a Google Drive
+        env:
+          DRIVE_URL: ${{ secrets.DRIVE_SCRIPT_URL }}
+          DRIVE_TOKEN: ${{ secrets.DRIVE_SCRIPT_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import base64, json, os
+          n = os.environ['NOMBRE']
+          with open(n + '.zip', 'rb') as f:
+              datos = base64.b64encode(f.read()).decode()
+          json.dump({'token': os.environ['DRIVE_TOKEN'], 'nombre': n + '.zip', 'contenido': datos}, open('carga.json', 'w'))
+          PY
+          respuesta=$(curl -sL -X POST "$DRIVE_URL" -H "Content-Type: application/json" --data @carga.json)
+          echo "Google Drive respondió: $respuesta"
+          echo "$respuesta" | grep -q '"ok":true'
+      - name: Registrar en la base
+        if: always()
+        run: |
+          ESTADO=$([ "${{ job.status }}" = "success" ] && echo ok || echo error)
+          psql "$DB_URL" -c "insert into public.respaldos (tipo, destino, nombre_archivo, bytes, estado) values ('$TIPO', 'google_drive', '${NOMBRE}.zip', ${BYTES:-0}, '$ESTADO')"
+      - name: Guardar copia en GitHub (30 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NOMBRE }}
+          path: ${{ env.NOMBRE }}.zip
+          retention-days: 30

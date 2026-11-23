@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISTRILÓGICO S.A. | Portal del Técnico</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        industrial: {
+                            navy: '#0f172a',
+                            blue: '#1e3a8a',
+                            accent: '#2563eb',
+                            red: '#dc2626',
+                            darkred: '#991b1b',
+                            steel: '#64748b',
+                            light: '#f8fafc',
+                            cardbg: '#ffffff',
+                            border: '#e2e8f0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* iDock-style Capsule Styling for Sidebar Nav */
+        .dock-capsule {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1.25rem;
+        }
+        .dock-capsule:hover {
+            transform: translateX(4px);
+        }
+        .dock-capsule.active {
+            background-color: #dc2626;
+            color: #ffffff !important;
+            box-shadow: 0 8px 20px -4px rgba(220, 38, 38, 0.4);
+        }
+        .dock-capsule.active i, .dock-capsule.active span {
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- HEADER INDUSTRIAL -->
+    <header class="bg-industrial-navy text-white shadow-lg border-b-4 border-industrial-red sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <!-- Logo & Corporate Tag -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-industrial-red p-2.5 rounded-2xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-user-gear text-white text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400 font-extrabold">DISTRILÓGICO S.A.</span>
+                        <span class="bg-blue-500/20 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-500/30">ÁREA TÉCNICA</span>
+                    </div>
+                    <h1 class="text-base md:text-lg font-bold tracking-tight text-white">Portal del Técnico de Soldadura</h1>
+                </div>
+            </div>
+
+            <!-- Profile Summary Badge -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:block text-right">
+                    <p class="text-xs font-extrabold text-white" id="headerTechName">Allan Murillo</p>
+                    <p class="text-[10px] text-slate-400" id="headerTechRole">Especialista en Soldadura Heavy-Duty</p>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-industrial-blue border-2 border-industrial-red flex items-center justify-center text-white font-black text-sm shadow">
+                    AM
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- LAYOUT PRINCIPAL CON MENÚ LATERAL Y PANEL DE CONTENIDO -->
+    <div class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full flex flex-col md:flex-row gap-6">
+
+        <!-- MENÚ LATERAL DE CÁPSULAS FIJAS (ESTILO DOCK - 7 MÓDULOS) -->
+        <aside class="w-full md:w-64 shrink-0">
+            <div class="bg-industrial-navy text-white rounded-3xl p-4 shadow-xl border border-slate-800 sticky top-24">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Cápsulas de Navegación</p>
+                <nav class="space-y-2">
+                    <button onclick="switchTab('profile')" id="nav-profile" class="dock-capsule active w-full flex items-center justify-between p-3.5 text-xs font-bold text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-id-card text-base text-slate-300"></i>
+                            <span>1. Perfil Profesional</span>
+                        </div>
+                    </button>
+
+                    <button onclick="switchTab('tasks')" id="nav-tasks" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-list-check text-base text-slate-300"></i>
+                            <span>2. Trabajos Asignados</span>
+                        </div>
+                        <span id="badgeTasksCount" class="bg-industrial-red text-white text-[10px] font-black px-2 py-0.5 rounded-full">2</span>
+                    </button>
+
+                    <button onclick="switchTab('history')" id="nav-history" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-clock-rotate-left text-base text-slate-300"></i>
+                            <span>3. Historial de Trabajos</span>
+                        </div>
+                    </button>
+
+                    <button onclick="switchTab('production')" id="nav-production" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-chart-line text-base text-slate-300"></i>
+                            <span>4. Producción Estándar</span>
+                        </div>
+                    </button>
+
+                    <button onclick="switchTab('calendar')" id="nav-calendar" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-calendar-days text-base text-slate-300"></i>
+                            <span>5. Calendario y Licencias</span>
+                        </div>
+                    </button>
+
+                    <button onclick="switchTab('contacts')" id="nav-contacts" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-address-book text-base text-slate-300"></i>
+                            <span>6. Contactos del Taller</span>
+                        </div>
+                    </button>
+
+                    <button onclick="switchTab('recognitions')" id="nav-recognitions" class="dock-capsule w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-300 hover:bg-slate-800 text-left">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-medal text-base text-slate-300"></i>
+                            <span>7. Reconocimientos</span>
+                        </div>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- ESPACIO DE TRABAJO PRINCIPAL DINÁMICO -->
+        <main class="flex-1 bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+
+            <!-- 1. PERFIL DEL TÉCNICO -->
+            <section id="tab-profile" class="space-y-6">
+                <div class="border-b border-slate-200 pb-4">
+                    <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                        <i class="fa-solid fa-id-card text-industrial-red"></i>
+                        <span>Perfil del Técnico</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Información del colaborador y datos de contacto autorizados.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center flex flex-col items-center justify-center space-y-3">
+                        <div class="w-24 h-24 rounded-full bg-industrial-navy text-white text-3xl font-black flex items-center justify-center border-4 border-industrial-red shadow-lg">
+                            AM
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-base">Allan Murillo</h3>
+                            <p class="text-xs text-industrial-blue font-semibold">Especialista en Soldadura Heavy-Duty</p>
+                            <p class="text-[11px] text-slate-500 mt-1">ID Colaborador: TEC-88492</p>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-3 py-1 rounded-full border border-emerald-200">ACTIVO / DISPONIBLE</span>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-2xl text-xs text-amber-900 flex items-center space-x-2.5">
+                            <i class="fa-solid fa-lock text-amber-600 text-base"></i>
+                            <span>Los campos marcados con 🔒 corresponden a datos laborales institucionales restringidos y solo pueden ser modificados por Recursos Humanos o Administración.</span>
+                        </div>
+
+                        <form id="profileForm" onsubmit="saveProfile(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Nombre Completo <span class="text-slate-400">🔒</span></label>
+                                <input type="text" value="Allan Murillo" disabled class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-500 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Cargo Institucional <span class="text-slate-400">🔒</span></label>
+                                <input type="text" value="Especialista en Soldadura Heavy-Duty" disabled class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-500 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Especialidad Operativa <span class="text-slate-400">🔒</span></label>
+                                <input type="text" value="Plataformas Heavy-Duty / UPN / Compuertas" disabled class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-500 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Área / Taller <span class="text-slate-400">🔒</span></label>
+                                <input type="text" value="Taller de Soldadura - DISTRILÓGICO S.A." disabled class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 font-medium text-slate-500 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Teléfono Móvil (Editable) ✏️</label>
+                                <input type="text" id="profPhone" value="0991234567" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:border-industrial-blue focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Contacto Autorizado Emergencia ✏️</label>
+                                <input type="text" id="profContact" value="María Murillo (Esposa) - 0987654321" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:border-industrial-blue focus:outline-none">
+                            </div>
+                            <div class="sm:col-span-2 flex justify-end pt-2">
+                                <button type="submit" class="bg-industrial-red hover:bg-industrial-darkred text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center space-x-2">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Guardar Datos Autorizados</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TRABAJOS ASIGNADOS -->
+            <section id="tab-tasks" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-industrial-red"></i>
+                            <span>Trabajos Asignados</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Muestra exclusivamente las asignaciones activas del técnico autenticado.</p>
+                    </div>
+                    <span id="taskTabBadge" class="bg-industrial-blue text-white text-xs font-extrabold px-3 py-1 rounded-full">2 Asignadas</span>
+                </div>
+
+                <div id="assignedTasksList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dinámico via JS -->
+                </div>
+
+                <div id="emptyTasksNotice" class="hidden py-16 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                    <i class="fa-solid fa-circle-check text-slate-300 text-4xl mb-3"></i>
+                    <h3 class="font-extrabold text-slate-700 text-sm">Actualmente no tienes trabajos asignados</h3>
+                    <p class="text-xs text-slate-400 mt-1">Todas las órdenes de trabajo asignadas a tu perfil han sido ejecutadas.</p>
+                </div>
+            </section>
+
+            <!-- 3. HISTORIAL DE TRABAJOS -->
+            <section id="tab-history" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                            <i class="fa-solid fa-clock-rotate-left text-industrial-red"></i>
+                            <span>Historial de Trabajos Ejecutados</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Consulta histórica privada de intervenciones realizadas individualmente.</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="text-slate-500 font-bold">Filtrar:</span>
+                        <input type="date" id="histDateFrom" value="2026-10-24" class="border border-slate-300 rounded-xl px-2.5 py-1.5 font-semibold text-slate-700">
+                        <span class="text-slate-400">a</span>
+                        <input type="date" id="histDateTo" value="2026-11-11" class="border border-slate-300 rounded-xl px-2.5 py-1.5 font-semibold text-slate-700">
+                        <button onclick="filterHistory()" class="bg-industrial-navy text-white px-3 py-1.5 rounded-xl font-bold hover:bg-slate-800">Aplicar</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 font-extrabold border-b border-slate-200 uppercase tracking-wider">
+                                <th class="py-3 px-4">Fecha</th>
+                                <th class="py-3 px-4">Vehículo</th>
+                                <th class="py-3 px-4">Orden</th>
+                                <th class="py-3 px-4">Componente</th>
+                                <th class="py-3 px-4">Intervención Ejecutada</th>
+                                <th class="py-3 px-4 text-center">Técnicos</th>
+                                <th class="py-3 px-4 text-right">Prod. Estándar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-slate-100 font-medium">
+                            <!-- Dinámico via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. PRODUCCIÓN INDIVIDUAL (LIMPIO Y AISLADO DE RECONOCIMIENTOS) -->
+            <section id="tab-production" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                            <i class="fa-solid fa-chart-line text-industrial-red"></i>
+                            <span>Tablero de Producción Estándar Individual</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Valoración objetiva de la producción generada por unidad atendida.</p>
+                    </div>
+                    <div class="bg-industrial-blue/10 border border-industrial-blue/30 text-industrial-blue px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-calendar-check text-industrial-blue"></i>
+                        <span>Período Oficial: 24 Octubre - 24 Noviembre</span>
+                    </div>
+                </div>
+
+                <!-- SELECTOR TRI-ESTADO -->
+                <div class="bg-slate-100 p-1.5 rounded-2xl flex items-center max-w-md border border-slate-200 text-xs font-bold">
+                    <button onclick="updateProd('diaria')" id="pBtnDiaria" class="flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">DIARIA</button>
+                    <button onclick="updateProd('semanal')" id="pBtnSemanal" class="flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">SEMANAL</button>
+                    <button onclick="updateProd('mensual')" id="pBtnMensual" class="flex-1 py-2 rounded-xl bg-industrial-navy text-white shadow-md transition font-bold">MENSUAL (24-24)</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <p class="text-xs font-extrabold text-slate-400 uppercase">Producción Acumulada</p>
+                        <h3 id="kpiHours" class="text-2xl font-black text-industrial-red mt-1">42.50 h</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Sumatoria de horas estándar del corte oficial</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <p class="text-xs font-extrabold text-slate-400 uppercase">Trabajos Realizados</p>
+                        <h3 id="kpiWorks" class="text-2xl font-black text-industrial-navy mt-1">28</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Intervenciones validadas en el período</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <p class="text-xs font-extrabold text-slate-400 uppercase">Imprevistos Aprobados</p>
+                        <h3 id="kpiImprev" class="text-2xl font-black text-amber-600 mt-1">1.50 h</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Afectación reconocida por Jefatura</p>
+                    </div>
+                </div>
+
+                <!-- ACLARACIÓN METODOLÓGICA -->
+                <div class="bg-slate-900 text-slate-200 p-4 rounded-2xl text-xs space-y-1">
+                    <p class="font-bold text-amber-400"><i class="fa-solid fa-circle-info mr-1"></i> Aclaración Metodológica Importante:</p>
+                    <p class="text-slate-300">
+                        La <b>Producción Estándar</b> representa la acumulación de tiempos de referencia asignados a los trabajos completados. No constituye medición de tiempo real transcurrido ("horas reloj") ni determina automáticamente indicadores de productividad o bonificación individual, los cuales dependen de la metodología que apruebe la empresa.
+                    </p>
+                </div>
+
+                <!-- Gráfico de Producción -->
+                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200">
+                    <h4 class="text-xs font-extrabold uppercase text-slate-600 mb-4">Evolución Diaria de Horas Estándar Acreditadas</h4>
+                    <div class="h-64">
+                        <canvas id="productionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. CALENDARIO DE VACACIONES Y DIAS LIBRES -->
+            <section id="tab-calendar" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                            <i class="fa-solid fa-calendar-days text-industrial-red"></i>
+                            <span>Calendario Compartido y Licencias</span>
+                        </h2>
+                        <p class="text-xs text-slate-500">Planificación colectiva de ausencias del taller.</p>
+                    </div>
+                    <button onclick="openVacationModal()" class="bg-industrial-red hover:bg-industrial-darkred text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Solicitar Vacaciones</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-4">
+                        <h4 class="text-xs font-extrabold text-slate-700 uppercase">Ausencias Aprobadas en el Equipo</h4>
+                        <div class="space-y-2.5" id="approvedVacationsList">
+                            <!-- Dinámico via JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50/60 p-5 rounded-3xl border border-blue-200 space-y-4">
+                        <h4 class="text-xs font-extrabold text-industrial-blue uppercase">Estado de Mis Solicitudes</h4>
+                        <div id="myRequestsList" class="space-y-2 text-xs">
+                            <!-- Dinámico via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. CONTACTOS DEL TALLER -->
+            <section id="tab-contacts" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4">
+                    <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                        <i class="fa-solid fa-address-book text-industrial-red"></i>
+                        <span>Directorio Interno del Taller</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Directorio telefónico corporativo con alertas de disponibilidad en tiempo real.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="contactsGrid">
+                    <!-- Dinámico via JS -->
+                </div>
+            </section>
+
+            <!-- 7. RECONOCIMIENTOS (APARTADO INDEPENDIENTE CON FILTRO Y LISTA COMPACTA) -->
+            <section id="tab-recognitions" class="space-y-6 hidden">
+                <div class="border-b border-slate-200 pb-4">
+                    <h2 class="text-lg font-extrabold text-industrial-navy flex items-center space-x-2">
+                        <i class="fa-solid fa-medal text-industrial-red"></i>
+                        <span>Historial de Reconocimientos Institucionales</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Consulta individual y cronológica de asignaciones de nivel y cortes oficiales (24 al 24).</p>
+                </div>
+
+                <!-- FILTRO POR RANGO DE FECHAS OFICIALES -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4 text-xs">
+                    <div class="w-full sm:w-auto flex-1">
+                        <label class="block font-bold text-slate-600 mb-1">Fecha Inicial (Corte 24):</label>
+                        <input type="date" id="filterStart" value="2026-07-24" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800">
+                    </div>
+                    <div class="w-full sm:w-auto flex-1">
+                        <label class="block font-bold text-slate-600 mb-1">Fecha Final (Corte 24):</label>
+                        <input type="date" id="filterEnd" value="2026-11-24" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800">
+                    </div>
+                    <div class="w-full sm:w-auto sm:pt-5">
+                        <button onclick="applyRecognitionFilter()" class="w-full sm:w-auto bg-industrial-blue hover:bg-blue-900 text-white font-bold px-5 py-2.5 rounded-xl shadow transition-all">🔍 Aplicar Filtro</button>
+                    </div>
+                </div>
+
+                <!-- LISTA VERTICAL COMPACTA (ÚLTIMOS 5 PERÍODOS) -->
+                <div class="space-y-3" id="recognitionListContainer">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Registros Recientes (Últimos 5 Períodos Oficiales)</p>
+
+                    <!-- Fila 1 -->
+                    <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 text-xs">24 OCT – 24 NOV 2026</span>
+                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">PERÍODO EN CURSO</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Producción total: <strong class="text-slate-800">42.50 h</strong> &nbsp;|&nbsp; Trabajos realizados: <strong class="text-slate-800">28</strong></p>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-medium">Cierre programado: 24/11/2026</span>
+                    </div>
+
+                    <!-- Fila 2 -->
+                    <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 text-xs">24 SEP – 24 OCT 2026</span>
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">PISO 2</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Producción total: <strong class="text-slate-800">168.40 h</strong> &nbsp;|&nbsp; Trabajos realizados: <strong class="text-slate-800">112</strong></p>
+                        </div>
+                        <span class="text-[11px] text-emerald-600 font-bold">Validado el 25/10/2026</span>
+                    </div>
+
+                    <!-- Fila 3 -->
+                    <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 text-xs">24 AGO – 24 SEP 2026</span>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">PISO 1</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Producción total: <strong class="text-slate-800">152.00 h</strong> &nbsp;|&nbsp; Trabajos realizados: <strong class="text-slate-800">98</strong></p>
+                        </div>
+                        <span class="text-[11px] text-blue-600 font-bold">Validado el 25/09/2026</span>
+                    </div>
+
+                    <!-- Fila 4 -->
+                    <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 text-xs">24 JUL – 24 AGO 2026</span>
+                                <span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300">EN VALIDACIÓN</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Producción total: <strong class="text-slate-800">144.10 h</strong> &nbsp;|&nbsp; Trabajos realizados: <strong class="text-slate-800">91</strong></p>
+                        </div>
+                        <span class="text-[11px] text-slate-500 font-medium">Pendiente de validación oficial</span>
+                    </div>
+
+                    <!-- Fila 5 -->
+                    <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 text-xs">24 JUN – 24 JUL 2026</span>
+                                <span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300">SIN RECONOCIMIENTO</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Producción total: <strong class="text-slate-800">120.00 h</strong> &nbsp;|&nbsp; Trabajos realizados: <strong class="text-slate-800">78</strong></p>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-medium">Período cerrado sin asignación</span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 mt-auto border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>DISTRILÓGICO S.A. © 2026 - Portal del Técnico Unificado</p>
+            <p class="text-slate-500">Versión 3.5 con Apartado Independiente de Reconocimientos</p>
+        </div>
+    </footer>
+
+    <!-- MODAL SOLICITUD DE VACACIONES -->
+    <div id="vacationModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="bg-industrial-navy text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-extrabold text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plane-departure text-industrial-red"></i>
+                    <span>Solicitar Vacaciones / Licencia</span>
+                </h3>
+                <button onclick="closeVacationModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitVacation(event)" class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Fecha de Inicio</label>
+                    <input type="date" id="vacStart" required class="w-full border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Fecha de Fin</label>
+                    <input type="date" id="vacEnd" required class="w-full border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Motivo / Observación (Opcional)</label>
+                    <textarea id="vacReason" rows="2" placeholder="Ej. Solicitud de vacaciones reglamentarias acumuladas..." class="w-full border border-slate-300 rounded-xl px-3 py-2"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeVacationModal()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl">Cancelar</button>
+                    <button type="submit" class="bg-industrial-red hover:bg-industrial-darkred text-white font-bold px-4 py-2 rounded-xl shadow">Enviar a Jefe de Patio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 flex items-center space-x-3 transform translate-y-24 opacity-0 transition-all duration-300 border border-slate-700 text-xs font-bold">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">Notificación</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // MOCK DATA DE PRUEBA EXCLUSIVA PARA ALLAN MURILLO
+        const assignedTasks = [
+            { id: 'OT-0089', platform: 'DP-077', component: 'COMPUERTAS', element: 'Bisagras', intervention: 'Resoldar bisagra', priority: 'ALTA', status: 'PENDIENTE' },
+            { id: 'OT-0091', platform: 'DP-080', component: 'UPN', element: 'Perfil UPN 120', intervention: 'Enderezar', priority: 'MEDIA', status: 'EN PROCESO' }
+        ];
+
+        const historyRecords = [
+            { date: '2026-11-10', platform: 'DP-078', ot: 'OT-0082', comp: 'PERFILES', inv: 'Reparación de perfil', techs: 1, hours: 1.2 },
+            { date: '2026-11-09', platform: 'DP-077', ot: 'OT-0079', comp: 'TRAVESAÑOS', inv: 'Reforzar travesaño', techs: 2, hours: 2.0 },
+            { date: '2026-11-08', platform: 'DP-079', ot: 'OT-0075', comp: 'TANQUE', inv: 'Cambio de válvula', techs: 1, hours: 1.5 },
+            { date: '2026-11-06', platform: 'DP-080', ot: 'OT-0071', comp: 'CABINA', inv: 'Parches de estructura', techs: 1, hours: 1.2 },
+            { date: '2026-11-05', platform: 'DP-077', ot: 'OT-0068', comp: 'COMPUERTAS', inv: 'Fabricar bisagra', techs: 1, hours: 2.5 }
+        ];
+
+        const contactsList = [
+            { name: 'Jhon Cordova', role: 'Soldador Técnico', phone: '0998765432', vacation: false },
+            { name: 'Oswaldo Sanchez', role: 'Soldador Técnico', phone: '0987654321', vacation: true, vacUntil: '2026-11-18' },
+            { name: 'Christian Alcivar', role: 'Técnico Mecánico', phone: '0976543210', vacation: false },
+            { name: 'Santiago Cambisaca', role: 'Técnico Soldador', phone: '0965432109', vacation: false },
+            { name: 'Ing. Roberto Mendoza', role: 'Supervisor de Taller', phone: '0954321098', vacation: false }
+        ];
+
+        let myVacations = [
+            { start: '2026-12-20', end: '2026-12-30', status: 'PENDIENTE DE APROBACIÓN POR JEFE DE PATIO' }
+        ];
+
+        let chartInstance = null;
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTasks();
+            renderHistory();
+            renderContacts();
+            renderVacations();
+            initChart();
+        });
+
+        // TAB SWITCHING (7 CÁPSULAS)
+        function switchTab(tabId) {
+            ['profile', 'tasks', 'history', 'production', 'calendar', 'contacts', 'recognitions'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if(el) el.classList.add('hidden');
+                if(nav) {
+                    nav.classList.remove('active');
+                    nav.classList.add('text-slate-300');
+                }
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeTab) activeTab.classList.remove('hidden');
+            if(activeNav) {
+                activeNav.classList.add('active');
+                activeNav.classList.remove('text-slate-300');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // RENDER TASKS
+        function renderTasks() {
+            const container = document.getElementById('assignedTasksList');
+            const emptyNotice = document.getElementById('emptyTasksNotice');
+            container.innerHTML = '';
+
+            if (assignedTasks.length === 0) {
+                emptyNotice.classList.remove('hidden');
+            } else {
+                emptyNotice.classList.add('hidden');
+                assignedTasks.forEach((t) => {
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-50 p-4 rounded-3xl border border-slate-200 hover:border-industrial-blue transition-all space-y-3 text-xs";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                            <span class="font-black text-industrial-blue text-sm"><i class="fa-solid fa-truck-front mr-1"></i> ${t.platform}</span>
+                            <span class="bg-slate-200 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono">${t.id}</span>
+                        </div>
+                        <div class="space-y-1">
+                            <p><strong class="text-slate-600">Componente:</strong> ${t.component}</p>
+                            <p><strong class="text-slate-600">Elemento:</strong> ${t.element}</p>
+                            <p><strong class="text-industrial-navy font-bold">Intervención:</strong> ${t.intervention}</p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                            <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-bold text-[10px]">Prioridad: ${t.priority}</span>
+                            <button onclick="showToast('Marcado como completado pendiente de validación')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl shadow">Completar Trabajo</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        // RENDER HISTORY
+        function renderHistory() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            historyRecords.forEach(h => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-slate-600">${h.date}</td>
+                    <td class="py-3 px-4 font-black text-industrial-blue">${h.platform}</td>
+                    <td class="py-3 px-4 font-mono font-bold text-slate-700">${h.ot}</td>
+                    <td class="py-3 px-4 text-slate-600">${h.comp}</td>
+                    <td class="py-3 px-4 text-slate-800">${h.inv}</td>
+                    <td class="py-3 px-4 text-center"><span class="bg-slate-100 font-bold px-2 py-0.5 rounded-full text-[11px]">${h.techs}</span></td>
+                    <td class="py-3 px-4 text-right font-black text-industrial-red font-mono">${h.hours.toFixed(2)} h</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterHistory() {
+            showToast('Filtro de historial aplicado correctamente');
+        }
+
+        // UPDATE PRODUCTION TRI-STATE
+        function updateProd(period) {
+            const btnD = document.getElementById('pBtnDiaria');
+            const btnS = document.getElementById('pBtnSemanal');
+            const btnM = document.getElementById('pBtnMensual');
+            [btnD, btnS, btnM].forEach(b => b.className = "flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition");
+
+            const hours = document.getElementById('kpiHours');
+            const works = document.getElementById('kpiWorks');
+            const imprev = document.getElementById('kpiImprev');
+
+            if(period === 'diaria') {
+                btnD.className = "flex-1 py-2 rounded-xl bg-industrial-navy text-white shadow-md transition font-bold";
+                hours.innerText = "7.50 h";
+                works.innerText = "4";
+                imprev.innerText = "0.00 h";
+            } else if(period === 'semanal') {
+                btnS.className = "flex-1 py-2 rounded-xl bg-industrial-navy text-white shadow-md transition font-bold";
+                hours.innerText = "35.00 h";
+                works.innerText = "18";
+                imprev.innerText = "1.00 h";
+            } else {
+                btnM.className = "flex-1 py-2 rounded-xl bg-industrial-navy text-white shadow-md transition font-bold";
+                hours.innerText = "42.50 h";
+                works.innerText = "28";
+                imprev.innerText = "1.50 h";
+            }
+        }
+
+        // RENDER CONTACTS
+        function renderContacts() {
+            const grid = document.getElementById('contactsGrid');
+            grid.innerHTML = '';
+            contactsList.forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 p-4 rounded-3xl border border-slate-200 space-y-2 text-xs flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-black text-slate-800 text-sm">${c.name}</h4>
+                            ${c.vacation ? '<span class="bg-rose-100 text-rose-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full">De Vacaciones</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full">Disponible</span>'}
+                        </div>
+                        <p class="text-industrial-blue font-semibold mt-0.5">${c.role}</p>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-[11px]">
+                        <span class="font-mono font-bold text-slate-600"><i class="fa-solid fa-phone text-slate-400 mr-1"></i> ${c.phone}</span>
+                        <a href="tel:${c.phone}" class="bg-industrial-navy text-white px-2.5 py-1 rounded-xl font-bold hover:bg-slate-800"><i class="fa-solid fa-phone-volume"></i></a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // RENDER VACATIONS
+        function renderVacations() {
+            const list = document.getElementById('approvedVacationsList');
+            list.innerHTML = `
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 flex justify-between items-center text-xs">
+                    <div>
+                        <p class="font-bold text-slate-800">Oswaldo Sanchez</p>
+                        <p class="text-[11px] text-slate-500">Ausencia programada por vacaciones</p>
+                    </div>
+                    <span class="font-mono font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl">Hasta 18/11/2026</span>
+                </div>
+            `;
+
+            const myReq = document.getElementById('myRequestsList');
+            myReq.innerHTML = '';
+            myVacations.forEach(v => {
+                myReq.innerHTML += `
+                    <div class="bg-white p-3.5 rounded-2xl border border-blue-200 space-y-1">
+                        <div class="flex justify-between font-bold text-slate-800">
+                            <span>Del ${v.start} al ${v.end}</span>
+                            <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Pendiente</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">${v.status}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function openVacationModal() {
+            document.getElementById('vacationModal').classList.remove('hidden');
+        }
+
+        function closeVacationModal() {
+            document.getElementById('vacationModal').classList.add('hidden');
+        }
+
+        function submitVacation(e) {
+            e.preventDefault();
+            const start = document.getElementById('vacStart').value;
+            const end = document.getElementById('vacEnd').value;
+            myVacations.push({ start, end, status: 'ENVIADO A JEFE DE PATIO' });
+            renderVacations();
+            closeVacationModal();
+            showToast('Solicitud de vacaciones enviada con éxito');
+        }
+
+        // PROFILE SAVE
+        function saveProfile(e) {
+            e.preventDefault();
+            showToast('Datos de contacto actualizados correctamente');
+        }
+
+        // RECOGNITION FILTER
+        function applyRecognitionFilter() {
+            const start = document.getElementById('filterStart').value;
+            const end = document.getElementById('filterEnd').value;
+            if(start > end) {
+                showToast('Error: Fecha inicial posterior a la final', true);
+                return;
+            }
+            showToast('Filtro de reconocimientos aplicado con éxito');
+        }
+
+        // TOAST
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            const m = document.getElementById('toastMsg');
+            m.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-24');
+            if(isError) {
+                t.classList.add('bg-rose-900', 'border-rose-700');
+            } else {
+                t.classList.remove('bg-rose-900', 'border-rose-700');
+            }
+            setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-24');
+            }, 3000);
+        }
+
+        // CHART.JS INIT
+        function initChart() {
+            const ctx = document.getElementById('productionChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['24 Oct', '25 Oct', '26 Oct', '27 Oct', '28 Oct', '29 Oct', '30 Oct', '31 Oct', '01 Nov', '02 Nov', '03 Nov', '04 Nov', '05 Nov', '06 Nov', '07 Nov', '08 Nov', '09 Nov', '10 Nov', '11 Nov'],
+                    datasets: [{
+                        label: 'Horas Estándar Acreditadas',
+                        data: [6.5, 7.2, 8.0, 6.8, 7.5, 6.9, 7.1, 7.8, 6.5, 7.4, 8.2, 6.7, 7.0, 7.5, 8.1, 6.9, 7.3, 7.6, 6.8],
+                        backgroundColor: '#1e3a8a',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

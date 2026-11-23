@@ -1,0 +1,764 @@
+<title>Taller Distrilógico · Diseño</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: hoja técnica de taller. Banda de acero arriba, índice fijo, secciones apiladas; bocetos en marcos de dispositivo. */
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --ink:#141A22; --muted:#56606D; --line:#D2D8DF;
+  --steel:#1C2530; --steel-ink:#F1F4F7; --accent:#F2B705; --accent-ink:#141A22; --accent-soft:#FFF4CC;
+  --ok:#1C7F46; --ok-soft:#DDF3E6; --warn:#A86F00; --warn-soft:#FFF0CC; --bad:#BF2424; --bad-soft:#FCE1E1; --info:#1A57B0; --info-soft:#E0EAFA;
+  --frame:#2A333E;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1217; --surface:#171E27; --ink:#E8ECF1; --muted:#9AA5B2; --line:#2B3643;
+  --steel:#080B0F; --steel-ink:#E8ECF1; --accent:#F5C02E; --accent-ink:#141A22; --accent-soft:#3A3115;
+  --ok:#4CC27F; --ok-soft:#173726; --warn:#E5AE3A; --warn-soft:#3A2E12; --bad:#F06A6A; --bad-soft:#3E1C1C; --info:#6FA4F2; --info-soft:#18294A;
+  --frame:#3A4552; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1217; --surface:#171E27; --ink:#E8ECF1; --muted:#9AA5B2; --line:#2B3643;
+  --steel:#080B0F; --steel-ink:#E8ECF1; --accent:#F5C02E; --accent-ink:#141A22; --accent-soft:#3A3115;
+  --ok:#4CC27F; --ok-soft:#173726; --warn:#E5AE3A; --warn-soft:#3A2E12; --bad:#F06A6A; --bad-soft:#3E1C1C; --info:#6FA4F2; --info-soft:#18294A;
+  --frame:#3A4552; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--steel)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.band{background:var(--steel);color:var(--steel-ink)}
+header.band .wrap{padding-block:28px 22px;display:grid;gap:8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,48px);font-weight:700}
+h2{font-size:30px;font-weight:700}
+h3{font-size:21px;font-weight:600}
+header.band p{margin:0;max-width:70ch;color:color-mix(in srgb,var(--steel-ink) 78%,transparent)}
+nav.idx{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav.idx .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:6px}
+nav.idx a{font-family:var(--f-display);font-weight:600;font-size:17px;text-decoration:none;color:var(--ink);padding:8px 14px;border-radius:6px;white-space:nowrap}
+nav.idx a:hover,nav.idx a:focus-visible{background:var(--accent-soft);outline:none}
+section{padding-block:40px 12px;scroll-margin-top:60px}
+section > .wrap{display:grid;gap:20px}
+.lead{max-width:72ch;color:var(--muted);margin:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 20px;min-width:0}
+.panel h3{margin-bottom:8px}
+.panel ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.panel p{margin:0 0 8px}
+.alert{border-left:6px solid var(--warn);background:var(--warn-soft)}
+.alert.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.q{border-left:6px solid var(--info);background:var(--info-soft)}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:.03em;white-space:nowrap}
+.f1{background:var(--accent);color:var(--accent-ink)}
+.f2{background:var(--info-soft);color:var(--info);border:1px solid var(--info)}
+.f3{background:transparent;color:var(--muted);border:1px solid var(--muted)}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-size:15px;font-weight:600;background:color-mix(in srgb,var(--steel) 6%,var(--surface));position:sticky;top:0}
+td code,.mono{font-family:var(--f-mono);font-size:12.5px}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.calc{width:100%}
+.calc td,.calc th{padding:6px 10px}
+pre.mermaid{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;margin:0}
+.filter{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:0;flex:1 1 240px}
+.dict{display:grid;gap:14px}
+.dict .t{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dict .t header{padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;border-bottom:1px solid var(--line)}
+.dict .t header code{font-family:var(--f-mono);font-weight:600;font-size:15px}
+.dict .t header span.d{color:var(--muted);font-size:14px;flex:1 1 260px}
+.dict .t .tblwrap{border:0;border-radius:0}
+.modhead{font-family:var(--f-display);font-size:22px;font-weight:700;margin:14px 0 0;padding-bottom:4px;border-bottom:3px solid var(--accent);justify-self:start}
+
+/* ====== Bocetos ====== */
+.mocks{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.mock{display:grid;gap:8px;min-width:0;max-width:100%}
+.mock figcaption{font-size:14px;color:var(--muted);max-width:44ch}
+.mock figcaption b{color:var(--ink);font-family:var(--f-display);font-size:17px;font-weight:600;display:block}
+figure{margin:0}
+.dev{background:var(--bg);border:10px solid var(--frame);border-radius:26px;overflow:hidden;max-width:100%;font-size:15px}
+.phone{width:350px}
+.tablet{width:760px;border-radius:20px}
+.desk{width:980px;border-radius:10px;border-width:8px}
+.scrollx{overflow-x:auto;max-width:100%}
+.appbar{background:var(--steel);color:var(--steel-ink);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.appbar .ttl{font-family:var(--f-display);font-weight:700;font-size:19px;flex:1;line-height:1.1}
+.appbar .ttl small{display:block;font-family:var(--f-mono);font-size:11px;font-weight:400;opacity:.75}
+.offline{font-family:var(--f-mono);font-size:10.5px;background:var(--warn);color:#141A22;padding:3px 7px;border-radius:4px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.steps i{height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+.scr{padding:14px;display:grid;gap:12px}
+.lbl{font-family:var(--f-display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
+.field{background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:10px 12px;font-size:17px}
+.field.big{font-family:var(--f-mono);font-size:26px;font-weight:600;letter-spacing:.02em}
+.hint{font-size:13px;margin-top:5px}
+.hint.ok{color:var(--ok)} .hint.warn{color:var(--warn)}
+.vcard{background:var(--surface);border:2px solid var(--ink);border-radius:8px;padding:10px 12px;display:grid;gap:2px}
+.vcard .code{font-family:var(--f-mono);font-weight:600;font-size:18px}
+.vcard .sub{color:var(--muted);font-size:14px}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.seg span{background:var(--surface);border:2px solid var(--line);border-radius:8px;text-align:center;padding:12px 0;font-family:var(--f-mono);font-weight:600;font-size:15px}
+.seg span.on{background:var(--accent);border-color:var(--ink);color:var(--accent-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{border:2px solid var(--line);background:var(--surface);border-radius:20px;padding:8px 13px;font-weight:600;font-size:15px}
+.chips span.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn{display:block;text-align:center;font-family:var(--f-display);font-weight:700;font-size:20px;padding:14px;border-radius:10px;background:var(--accent);color:var(--accent-ink);border:2px solid var(--ink)}
+.btn.sec{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;display:grid;gap:6px}
+.chk .n{font-weight:600}
+.chk .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.chk .opts span{text-align:center;padding:9px 0;border-radius:6px;border:2px solid var(--line);font-weight:700;font-size:14px;color:var(--muted)}
+.chk .opts .ok.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.chk .opts .fa.on{background:var(--warn);border-color:var(--warn);color:#141A22}
+.chk .opts .da.on{background:var(--bad);border-color:var(--bad);color:#fff}
+.chk .note{font-size:13px;color:var(--bad)}
+.tabs{display:flex;gap:4px}
+.tabs span{flex:1;text-align:center;padding:8px 0;border-radius:6px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:600}
+.tabs span.on{background:var(--ink);color:var(--bg)}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px}
+.diagram svg{display:block;width:100%;height:auto}
+.s-body{fill:var(--line)} .s-cab{fill:color-mix(in srgb,var(--info) 30%,var(--surface))} .s-glass{fill:var(--surface)} .s-wheel{fill:var(--ink)} .s-hub{fill:var(--muted)} .s-line{stroke:var(--muted);fill:none}
+.s-mk{fill:var(--bad)} .s-mkt{fill:#fff;font:700 12px var(--f-mono)} .s-mk2{fill:var(--warn)}
+.marks{display:grid;gap:4px;font-size:13.5px}
+.marks div{display:flex;gap:8px;align-items:center}
+.dot{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font:700 11px var(--f-mono);flex:none}
+.dot.r{background:var(--bad)} .dot.y{background:var(--warn);color:#141A22}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.photos span{aspect-ratio:1;border-radius:6px;display:grid;place-items:center;text-align:center;font-size:11.5px;font-weight:600;padding:4px;line-height:1.2}
+.photos .done{background:color-mix(in srgb,var(--ok) 18%,var(--surface));border:2px solid var(--ok);color:var(--ok)}
+.photos .need{background:var(--surface);border:2px dashed var(--bad);color:var(--bad)}
+.photos .opt{background:var(--surface);border:2px dashed var(--line);color:var(--muted)}
+.sig{background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:6px 10px 8px}
+.sig svg{width:100%;height:70px;display:block}
+.sig path{stroke:var(--ink);stroke-width:2.2;fill:none;stroke-linecap:round}
+.sig .who{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:4px}
+/* tablero */
+.kan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px}
+.col{background:color-mix(in srgb,var(--line) 45%,var(--bg));border-radius:8px;padding:8px;display:grid;gap:6px;align-content:start}
+.col h4{margin:0;font-family:var(--f-display);font-size:15px;font-weight:700;display:flex;justify-content:space-between}
+.otc{background:var(--surface);border-radius:6px;padding:8px;border:1px solid var(--line);display:grid;gap:3px;font-size:13px}
+.otc.stop{border-left:5px solid var(--bad)}
+.otc .c{font-family:var(--f-mono);font-weight:600;font-size:13.5px}
+.otc .m{color:var(--muted);font-size:12px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px}
+.p-bad{background:var(--bad-soft);color:var(--bad)} .p-warn{background:var(--warn-soft);color:var(--warn)} .p-ok{background:var(--ok-soft);color:var(--ok)} .p-info{background:var(--info-soft);color:var(--info)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-family:var(--f-display);font-size:26px;line-height:1}
+.kpi span{font-size:12px;color:var(--muted)}
+/* OT */
+.stepper{display:flex;gap:2px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+.stepper span{flex:1;min-width:76px;font-size:11.5px;font-weight:600;text-align:center;padding:6px 2px;background:var(--bg);color:var(--muted);border-radius:4px;line-height:1.15}
+.stepper span.done{background:var(--ok-soft);color:var(--ok)}
+.stepper span.now{background:var(--accent);color:var(--accent-ink)}
+.othead{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px;align-items:center;font-size:14px}
+.othead b{font-family:var(--f-mono)}
+.line{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:0 12px 8px;padding:10px 12px;display:grid;gap:6px}
+.line .top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.line .top .t{font-family:var(--f-display);font-weight:700;font-size:17px;margin-right:auto}
+.line table{font-size:13px} .line td,.line th{padding:4px 6px}
+.line th{position:static;font-size:13px}
+.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px 12px 12px}
+.totals div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;color:var(--muted)}
+.totals div b{display:block;font-family:var(--f-mono);font-size:18px;color:var(--ink)}
+.totals .grand{background:var(--steel);color:var(--steel-ink);border-color:var(--steel)}
+.totals .grand b{color:var(--accent)}
+/* comparativo */
+.cmp td,.cmp th{text-align:center;padding:9px 10px}
+.cmp td:first-child,.cmp th:first-child{text-align:left;color:var(--muted);font-weight:600}
+.best{background:var(--ok-soft);color:var(--ok);font-weight:700;border-radius:4px;padding:2px 6px}
+.cmp .pick{outline:3px solid var(--accent);outline-offset:-3px}
+/* entrega */
+.vs{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.vs table{font-size:13.5px} .vs th{position:static;font-size:14px} .vs td,.vs th{padding:7px 9px}
+.diff{background:var(--bad-soft);color:var(--bad);font-weight:700}
+.good{color:var(--ok);font-weight:700}
+/* preventivos */
+.sem td{text-align:center;font-size:12.5px;padding:7px 6px}
+.sem td:first-child{text-align:left;font-family:var(--f-mono);font-weight:600;font-size:13px}
+.sv,.sa,.sr,.sx{display:block;border-radius:5px;padding:5px 3px;font-weight:600;line-height:1.15}
+.sv{background:var(--ok-soft);color:var(--ok)} .sa{background:var(--warn-soft);color:var(--warn)} .sr{background:var(--bad);color:#fff} .sx{color:var(--muted)}
+footer{padding-block:30px 50px;color:var(--muted);font-size:14px}
+@media (max-width:520px){h2{font-size:26px}.panel{padding:14px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<header class="band"><div class="wrap">
+  <div class="eyebrow">Flota Distrilógico · Taller interno · Diseño v3 · 20 oct 2026</div>
+  <h1>Órdenes de Trabajo y Actas de Entrega/Recepción</h1>
+  <p>Este documento resume las decisiones tomadas con tus respuestas, el modelo de datos con su diccionario y los bocetos de las pantallas principales. Revísalo y apruébalo antes de que empiece a programar la Fase 1.</p>
+</div></header>
+
+<nav class="idx" aria-label="Secciones"><div class="wrap">
+  <a href="#decisiones">1 · Decisiones</a>
+  <a href="#alertas">2 · Límites gratis</a>
+  <a href="#modelo">3 · Modelo de datos</a>
+  <a href="#bocetos">4 · Bocetos</a>
+  <a href="#diccionario">5 · Diccionario</a>
+  <a href="#plataforma">6 · Plataforma</a>
+</div></nav>
+
+<!-- ================= 1. DECISIONES ================= -->
+<section id="decisiones"><div class="wrap">
+  <h2>1 · Lo que entendí de tus respuestas</h2>
+  <div class="grid2">
+    <div class="panel"><h3>Vehículos</h3><ul>
+      <li><b>DC</b> = cabezal, <b>DP</b> = plataforma, <b>DR</b> = recolector, más montacargas (<b>MC</b>, por horas). Todos con motor propio y kilometraje propio.</li>
+      <li>El código siempre es prefijo + número (DC001, DP176, DR010) y se guarda como texto.</li>
+      <li>Cada tipo usa su propio dibujo para el diagrama de daños y su propia distribución de llantas.</li>
+    </ul></div>
+    <div class="panel"><h3>Áreas de trabajo</h3><ul>
+      <li>Catálogo editable de <b>áreas</b>: Mecánico y Soldadura (internas); Lavadora y Talleres externos (externas).</li>
+      <li>La lavadora es externa pero no exige cotización cada vez. Los talleres externos sí.</li>
+      <li>Cada línea de trabajo de la OT se asigna a un área. Así se puede medir la carga de trabajo por área.</li>
+      <li>Una sola sede. La tabla está lista para agregar otra sede después si hace falta.</li>
+    </ul></div>
+    <div class="panel"><h3>Repuestos</h3><ul>
+      <li>Vienen de otro sistema. Se importa un <b>catálogo de repuestos desde Excel</b> (código, descripción, unidad) para autocompletar.</li>
+      <li>En la OT se registra código, descripción, cantidad y el documento de origen: S3 (bodega) u OC (orden de compra). Sin montos.</li>
+    </ul></div>
+    <div class="panel"><h3>OT sin dinero</h3><ul>
+      <li>La OT registra trabajos, técnicos, <b>horas</b>, repuestos y terceros, <b>sin ningún monto</b>.</li>
+      <li>Los precios solo existen en las <b>cotizaciones de terceros</b>, para comparar y aprobar.</li>
+      <li>Se quitan los reportes de costo por km y costo por categoría. Se mantienen tiempos, horas, fallas repetidas y proveedores.</li>
+    </ul></div>
+    <div class="panel"><h3>Firmas y aprobaciones</h3><ul>
+      <li>Los conductores <b>no tienen usuario</b>: firman en la tablet del taller.</li>
+      <li>Cotizaciones de hasta $300 las aprueba el jefe de taller. Sobre $300 aprueba gerencia, que son 2 personas: <b>basta con que apruebe una</b>.</li>
+      <li>Si la factura supera lo cotizado en más del <b>10 %</b>, el sistema avisa.</li>
+      <li>El monto que se compara contra $300 es el <b>subtotal sin IVA</b>.</li>
+    </ul></div>
+    <div class="panel"><h3>Cuentas</h3><ul>
+      <li>Todo se crea con tu correo personal de Gmail: GitHub, Supabase, Cloudflare y Google Drive.</li>
+      <li>En el LEEME dejaré documentado cómo transferir todo a otra cuenta, por si algún día dejas el cargo.</li>
+      <li>Se trabaja con datos de ejemplo hasta que tengas los archivos reales.</li>
+    </ul></div>
+  </div>
+  <div class="panel alert"><h3>Cambio importante (v3): las actas son de asignación de vehículos</h3><ul>
+    <li><b>Acta de entrega (AE-):</b> la empresa entrega el vehículo a un conductor, que queda asignado. <b>Acta de recepción (AR-):</b> la empresa recibe el vehículo de un conductor.</li>
+    <li>Son documentos <b>independientes</b>: no dependen una de la otra ni de la orden de trabajo.</li>
+    <li>La <b>OT se abre directamente</b> al ingresar el vehículo al taller (vehículo, km, motivo, falla, prioridad) y se cierra cuando todos los trabajos terminan.</li>
+    <li>Los bocetos de abajo que muestran el acta de recepción abriendo la OT y el acta de entrega cerrándola quedan reemplazados por este flujo.</li>
+  </ul></div>
+  <div class="panel q"><h3>Cambios de la versión v2</h3><ul>
+    <li><b>Sin fotos:</b> se quitaron todas las fotos (recepción, daños y entrega). El diagrama de daños queda con marcas numeradas y una descripción escrita.</li>
+    <li><b>Sin dinero en la OT:</b> solo trabajos, horas y repuestos.</li>
+    <li><b>Lavadora:</b> área externa.</li>
+    <li><b>Gerencia:</b> basta con que apruebe una de las 2 personas.</li>
+  </ul></div>
+</div></section>
+
+<!-- ================= 2. ALERTAS ================= -->
+<section id="alertas"><div class="wrap">
+  <h2>2 · Todo cabe en los planes gratis</h2>
+  <p class="lead">Al quitar las fotos ya no hace falta Cloudflare R2 ni registrar una tarjeta. Solo se guardan firmas (unos 10 KB cada una) y proformas de proveedores, que son opcionales.</p>
+  <div class="tblwrap"><table class="calc">
+    <thead><tr><th>Servicio</th><th class="num">Gratis</th><th>Uso estimado con 500 OT al mes</th><th>¿Cuánto dura?</th></tr></thead>
+    <tbody>
+      <tr><td>Base de datos Supabase</td><td class="num">500 MB</td><td>≈ 5 MB al mes (solo texto)</td><td>Más de 5 años</td></tr>
+      <tr><td>Supabase Storage (firmas y proformas)</td><td class="num">1 GB</td><td>≈ 20 MB al mes de firmas, más las proformas que se suban</td><td>Varios años</td></tr>
+      <tr><td>Cloudflare Pages (la aplicación)</td><td class="num">Sin límite de usuarios</td><td>15 usuarios</td><td>Sin límite</td></tr>
+      <tr><td>Google Drive (respaldo semanal)</td><td class="num">15 GB</td><td>≈ 10 a 30 MB por respaldo; se guardan los últimos 12</td><td>Sin límite práctico</td></tr>
+      <tr><td>GitHub (código y tareas automáticas)</td><td class="num">2.000 min/mes</td><td>≈ 60 min al mes</td><td>Sin límite</td></tr>
+    </tbody></table></div>
+  <div class="grid2">
+    <div class="panel"><h3>Límites del plan gratis, ya resueltos</h3><ul>
+      <li><b>Supabase se pausa tras 7 días sin uso:</b> una tarea automática de GitHub consulta la base cada día.</li>
+      <li><b>Supabase gratis no da respaldos descargables:</b> la misma tarea hace el respaldo SQL (pg_dump) cada semana y lo sube a tu Drive.</li>
+      <li><b>Exportación completa:</b> el botón descarga al instante CSV, Excel, diccionario e índice de archivos, y lanza el respaldo SQL, que llega a tu Drive en unos 2 minutos.</li>
+    </ul></div>
+    <div class="panel"><h3>Sin tarjeta en ninguna cuenta</h3><ul>
+      <li>GitHub, Supabase, Cloudflare Pages y Google Drive se crean con tu Gmail sin registrar tarjeta.</li>
+      <li>El panel de almacenamiento avisa al 80 % de cualquier límite. Con este volumen no se espera llegar.</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<!-- ================= 3. MODELO ================= -->
+<section id="modelo"><div class="wrap">
+  <h2>3 · Modelo de datos</h2>
+  <p class="lead">Son <span id="ntab"></span> tablas de PostgreSQL estándar, con nombres en español. Todas tienen un identificador <code class="mono">id</code> de tipo UUID. Los documentos tienen además su número legible (AR-2026-00001, OT-, AE-, SC-). Nada se borra: los registros se anulan indicando un motivo. La etiqueta <span class="tag f1">F1</span> <span class="tag f2">F2</span> <span class="tag f3">F3</span> indica en qué fase se construye cada tabla.</p>
+
+  <div class="panel">
+    <h3>Columnas comunes (no se repiten en el diccionario)</h3>
+    <ul>
+      <li><b>En todas las tablas:</b> <code class="mono">id</code> (uuid), <code class="mono">creado_en</code> y <code class="mono">actualizado_en</code> (fecha y hora con zona America/Guayaquil), <code class="mono">creado_por</code> y <code class="mono">actualizado_por</code> (uuid → usuarios).</li>
+      <li><b>En documentos y movimientos</b> (actas, OT, líneas, repuestos, cotizaciones, horas): <code class="mono">anulado</code> (sí/no), <code class="mono">anulado_motivo</code>, <code class="mono">anulado_por</code> y <code class="mono">anulado_en</code>.</li>
+      <li><b>En registros que se pueden crear sin conexión:</b> <code class="mono">id_local</code> (uuid generado en la tablet). Evita que un registro se guarde dos veces al sincronizar.</li>
+      <li><b>Formatos:</b> los montos (solo en cotizaciones) son <code class="mono">numeric(12,2)</code> en USD; los kilómetros y las horas son <code class="mono">numeric(10,1)</code>; los códigos y placas son <code class="mono">text</code>.</li>
+    </ul>
+  </div>
+
+  <h3>Relaciones principales</h3>
+<pre class="mermaid">
+erDiagram
+  vehiculos ||--o{ actas_recepcion : "ingresa con"
+  conductores ||--o{ actas_recepcion : "entrega"
+  actas_recepcion ||--o{ checklist_recepcion : "revisa"
+  actas_recepcion ||--o{ danos_vehiculo : "marca"
+  conductores ||--o{ actas_entrega : "recibe"
+  vehiculos ||--o{ actas_entrega : "se asigna con"
+  vehiculos ||--o{ ordenes_trabajo : "ingresa al taller"
+  ordenes_trabajo ||--o{ historial_estados_ot : "cambia de estado"
+  ordenes_trabajo ||--o{ lineas_trabajo : "tiene"
+  lineas_trabajo ||--o{ repuestos_linea : "consume"
+  lineas_trabajo ||--o{ registros_horas : "registra"
+  tecnicos ||--o{ registros_horas : "trabaja"
+  lineas_trabajo ||--o{ solicitudes_cotizacion : "pide"
+  solicitudes_cotizacion ||--o{ respuestas_cotizacion : "recibe"
+  proveedores ||--o{ respuestas_cotizacion : "oferta"
+  respuestas_cotizacion ||--o{ aprobaciones_cotizacion : "se aprueba"
+  lineas_trabajo ||--o| trabajos_externos : "seguimiento"
+  ordenes_trabajo ||--o{ controles_calidad : "verifica"
+  vehiculos ||--o{ kilometraje_diario : "recorre"
+  vehiculos ||--o{ instalaciones_llanta : "monta"
+  llantas ||--o{ instalaciones_llanta : "se instala"
+  planes_preventivos ||--o{ ultimo_servicio_preventivo : "controla"
+  vehiculos ||--o{ ultimo_servicio_preventivo : "tiene"
+</pre>
+
+  <h3>Todas las tablas</h3>
+  <div class="tblwrap"><table id="tablaResumen">
+    <thead><tr><th>Tabla</th><th>Fase</th><th>Módulo</th><th>Qué guarda</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</div></section>
+
+<!-- ================= 4. BOCETOS ================= -->
+<section id="bocetos"><div class="wrap">
+  <h2>4 · Bocetos de pantallas</h2>
+  <p class="lead">Los datos son de ejemplo. Los botones tienen al menos 44 px de alto para usarlos con guantes. El contraste es alto para leer al sol. El acta de recepción es un asistente de 4 pasos y cada paso se guarda en el equipo aunque no haya señal.</p>
+
+  <h3>Acta de recepción · celular</h3>
+  <div class="mocks">
+    <!-- Paso 1 -->
+    <figure class="mock"><div class="dev phone">
+      <div class="appbar"><div class="ttl">Acta de recepción<small>AR-2026-00142 · borrador</small></div><span class="offline">SIN SEÑAL · GUARDADO</span></div>
+      <div class="steps"><i class="on"></i><i></i><i></i><i></i></div>
+      <div class="scr">
+        <div><div class="lbl">Vehículo (código o placa)</div>
+          <div class="vcard"><span class="code">DC001 · GSA-4512</span><span class="sub">Cabezal 6x4 · Hino 700 SH · 2019</span><span class="sub">Chasis JHHUCS4H5KK01233 · Motor E13C-TL 41522</span></div></div>
+        <div><div class="lbl">Conductor que entrega</div><div class="field">Luis Alberto Pérez · 0912345678</div></div>
+        <div><div class="lbl">Kilometraje</div><div class="field big">412.380</div>
+          <div class="hint ok">✓ Último registrado: 411.950 km (12/10). Hunter estima 412.300 km.</div></div>
+        <div><div class="lbl">Combustible</div><div class="seg"><span>E</span><span>1/4</span><span class="on">1/2</span><span>3/4</span><span>F</span></div></div>
+        <div><div class="lbl">Motivo de ingreso</div><div class="chips"><span>Preventivo</span><span class="on">Correctivo</span><span>Llantas</span><span>Golpe / siniestro</span><span>Inspección</span></div></div>
+        <div><div class="lbl">Falla reportada por el conductor</div><div class="field" style="font-size:15px">Pierde aire el sistema de frenos; se escucha fuga en el eje trasero.</div></div>
+        <span class="btn">Siguiente: checklist →</span>
+      </div></div>
+      <figcaption><b>Paso 1 · Vehículo y estado</b>Al escribir "DC0" o "GSA" aparece la lista de vehículos. Si el km es menor al último registrado, no deja continuar. Si difiere más de 500 km de Hunter, muestra un aviso amarillo.</figcaption>
+    </figure>
+
+    <!-- Paso 2 -->
+    <figure class="mock"><div class="dev phone">
+      <div class="appbar"><div class="ttl">Checklist de ingreso<small>DC001 · GSA-4512</small></div></div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      <div class="scr">
+        <div class="lbl">Seguridad · 6 de 9 revisados</div>
+        <div class="chk"><span class="n">Extintor vigente</span><div class="opts"><span class="ok on">OK</span><span class="fa">Falta</span><span class="da">Dañado</span></div></div>
+        <div class="chk"><span class="n">Triángulos de seguridad</span><div class="opts"><span class="ok on">OK</span><span class="fa">Falta</span><span class="da">Dañado</span></div></div>
+        <div class="chk"><span class="n">Botiquín</span><div class="opts"><span class="ok">OK</span><span class="fa on">Falta</span><span class="da">Dañado</span></div></div>
+        <div class="chk"><span class="n">Espejos</span><div class="opts"><span class="ok">OK</span><span class="fa">Falta</span><span class="da on">Dañado</span></div><span class="note">Obs.: espejo derecho trizado</span></div>
+        <div class="chk"><span class="n">Fajas / chicotes de amarre</span><div class="opts"><span class="ok on">OK</span><span class="fa">Falta</span><span class="da">Dañado</span></div></div>
+        <div class="lbl">Documentos · 0 de 4</div>
+        <div class="chk"><span class="n">Matrícula</span><div class="opts"><span class="ok">OK</span><span class="fa">Falta</span><span class="da">Dañado</span></div></div>
+        <div class="btnrow"><span class="btn sec">Todo OK</span><span class="btn">Siguiente →</span></div>
+      </div></div>
+      <figcaption><b>Paso 2 · Checklist de camión pesado</b>El botón "Todo OK" marca todos los ítems y luego solo se corrigen las excepciones. Si un ítem está en Falta o Dañado, el sistema pide una observación. La lista se edita desde el catálogo.</figcaption>
+    </figure>
+
+    <!-- Paso 3 -->
+    <figure class="mock"><div class="dev phone">
+      <div class="appbar"><div class="ttl">Diagrama de daños<small>Toque el dibujo para marcar</small></div></div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+      <div class="scr">
+        <div class="tabs"><span>Frente</span><span>Atrás</span><span class="on">Izq.</span><span>Der.</span></div>
+        <div class="diagram"><svg viewBox="0 0 320 130" role="img" aria-label="Cabezal vista lateral izquierda con dos marcas de daño">
+          <rect class="s-body" x="96" y="66" width="214" height="14" rx="2"/>
+          <rect class="s-body" x="200" y="56" width="70" height="10" rx="2"/>
+          <path class="s-cab" d="M14 86 V40 Q14 20 34 18 H86 Q100 18 100 34 V86 Z"/>
+          <rect class="s-glass" x="24" y="28" width="30" height="24" rx="3"/>
+          <rect class="s-glass" x="60" y="28" width="30" height="24" rx="3"/>
+          <rect class="s-body" x="100" y="30" width="12" height="56"/>
+          <rect class="s-body" x="6" y="78" width="16" height="10" rx="2"/>
+          <circle class="s-wheel" cx="54" cy="96" r="20"/><circle class="s-hub" cx="54" cy="96" r="8"/>
+          <circle class="s-wheel" cx="214" cy="96" r="20"/><circle class="s-hub" cx="214" cy="96" r="8"/>
+          <circle class="s-wheel" cx="262" cy="96" r="20"/><circle class="s-hub" cx="262" cy="96" r="8"/>
+          <circle class="s-mk" cx="40" cy="64" r="11"/><text class="s-mkt" x="36" y="68">1</text>
+          <circle class="s-mk2" cx="150" cy="73" r="11"/><text class="s-mkt" x="146" y="77">2</text>
+        </svg></div>
+        <div class="marks">
+          <div><span class="dot r">1</span>Golpe · puerta izquierda · preexistente</div>
+          <div><span class="dot y">2</span>Oxidación · larguero del chasis · preexistente</div>
+        </div>
+        <div><div class="lbl">Marca 2 · tipo</div><div class="chips"><span>Golpe</span><span>Rayón</span><span>Rotura</span><span class="on">Oxidación</span></div></div>
+        <div><div class="lbl">Descripción</div><div class="field" style="font-size:15px">Oxidación en larguero izquierdo, junto al tanque.</div></div>
+        <span class="btn">Siguiente: firmas →</span>
+      </div></div>
+      <figcaption><b>Paso 3 · Diagrama de daños</b>El dibujo cambia según el tipo de vehículo (cabezal, plataforma, recolector o montacargas). Se toca el lugar del daño, se elige el tipo y se escribe una descripción corta. No se toman fotos.</figcaption>
+    </figure>
+
+    <!-- Paso 4 -->
+    <figure class="mock"><div class="dev phone">
+      <div class="appbar"><div class="ttl">Firmas<small>AR-2026-00142</small></div></div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      <div class="scr">
+        <div class="panel" style="padding:10px 12px;font-size:14px">
+          <b>Resumen:</b> DC001 · 412.380 km · ½ tanque · Correctivo · 2 ítems con novedad · 2 daños</div>
+        <div class="sig"><svg viewBox="0 0 300 70"><path d="M12 48 C30 10, 48 62, 66 34 S98 18, 112 44 S150 58, 168 30 C182 12, 196 52, 214 40 S250 26, 286 36"/></svg><div class="who">Firma del conductor · Luis Alberto Pérez · CI 0912345678</div></div>
+        <div class="sig"><svg viewBox="0 0 300 70"><path d="M20 40 C40 20, 60 20, 70 42 S110 60, 130 30 S170 12, 190 40 S230 56, 270 28"/></svg><div class="who">Recibe · Jorge Salazar · Jefe de taller</div></div>
+        <span class="btn">Firmar y abrir OT-2026-00142</span>
+        <div class="btnrow"><span class="btn sec">PDF por WhatsApp</span><span class="btn sec">PDF por correo</span></div>
+      </div></div>
+      <figcaption><b>Paso 4 · Firmas y PDF</b>Cada firma se guarda como imagen PNG junto con la fecha, la hora y el usuario. El PDF no se guarda: se genera al momento cada vez que se pide. Al firmar, la OT se abre automáticamente con el vehículo, el km y el motivo de esta acta.</figcaption>
+    </figure>
+  </div>
+
+  <h3>Tablero del taller · tablet</h3>
+  <figure class="mock"><div class="scrollx"><div class="dev tablet">
+    <div class="appbar"><div class="ttl">Taller · OT abiertas<small>Mecánico · Soldadura · Lavadora · Externos</small></div></div>
+    <div class="kpis">
+      <div class="kpi"><b>23</b><span>OT abiertas</span></div>
+      <div class="kpi"><b style="color:var(--bad)">7</b><span>vehículos inmovilizados</span></div>
+      <div class="kpi"><b>1,8 d</b><span>tiempo parado promedio (30 días)</span></div>
+      <div class="kpi"><b style="color:var(--warn)">3</b><span>trabajos externos atrasados</span></div>
+    </div>
+    <div class="kan">
+      <div class="col"><h4>Diagnóstico <span>3</span></h4>
+        <div class="otc stop"><span class="c">DC001 · GSA-4512</span><span>Frenos: fuga de aire</span><span class="m">OT-2026-00142 · 3 h parado</span><span><span class="pill p-bad">Alta</span></span></div>
+        <div class="otc"><span class="c">DR010 · GBC-7720</span><span>Compactador no sube</span><span class="m">OT-2026-00140 · 6 h</span></div></div>
+      <div class="col"><h4>Cotizando <span>2</span></h4>
+        <div class="otc stop"><span class="c">DC014 · PCQ-3381</span><span>Rectificación culata</span><span class="m">SC-2026-00031 · 3 ofertas</span><span><span class="pill p-warn">Falta aprobar</span></span></div></div>
+      <div class="col"><h4>Esperando rep. <span>4</span></h4>
+        <div class="otc"><span class="c">DP176 · GSD-2209</span><span>Kit embrague</span><span class="m">OC-4590 · 2 d</span></div>
+        <div class="otc"><span class="c">DP180 · GSD-2290</span><span>Rodamiento cubo</span><span class="m">OC-4593 · 1 d</span></div></div>
+      <div class="col"><h4>En reparación <span>6</span></h4>
+        <div class="otc stop"><span class="c">DC007 · GSA-4590</span><span>Embrague · Mecánico</span><span class="m">C. Mora · 4/6 h</span></div>
+        <div class="otc"><span class="c">DP151 · GSC-1148</span><span>Plataforma · Soldadura</span><span class="m">D. Vera · 2/3 h</span></div></div>
+      <div class="col"><h4>Calidad / Listo <span>3</span></h4>
+        <div class="otc"><span class="c">DC003 · GSA-4410</span><span>Preventivo 10.000</span><span class="m">Espera control de calidad</span><span><span class="pill p-info">Control</span></span></div>
+        <div class="otc"><span class="c">DP162 · GSC-1302</span><span>Llantas eje 2</span><span class="m">Listo para entrega</span><span><span class="pill p-ok">Listo</span></span></div></div>
+    </div>
+  </div></div>
+  <figcaption><b>Vista principal del jefe de taller</b>Muestra una tarjeta por OT, agrupadas en columnas por estado. La franja roja indica vehículo inmovilizado. Al tocar una tarjeta se abre la OT. El técnico ve solo sus trabajos asignados.</figcaption></figure>
+
+  <h3>Orden de trabajo · tablet</h3>
+  <figure class="mock"><div class="scrollx"><div class="dev tablet">
+    <div class="appbar"><div class="ttl">OT-2026-00142 · DC001 · GSA-4512<small>Cabezal 6x4 · 412.380 km · Correctivo · desde AR-2026-00142</small></div></div>
+    <div class="stepper"><span class="done">Recepción ✓</span><span class="done">Diagnóstico ✓</span><span class="now">Cotizando</span><span>Esperando repuestos</span><span>En reparación</span><span>Control de calidad</span><span>Listo para entrega</span><span>Entregado</span></div>
+    <div class="othead"><span>Prioridad <span class="pill p-bad">Alta</span></span><span><span class="pill p-bad">Inmovilizado</span></span><span>Tiempo parado: <b>1 d 4 h</b></span><span>En "Cotizando": <b>5 h</b></span><span style="margin-left:auto" class="btn sec" >+ Línea de trabajo</span></div>
+    <div class="line">
+      <div class="top"><span class="t">1 · Frenos — fuga en válvula relé</span><span class="pill p-info">Correctivo</span><span class="pill p-ok">Mecánico · interno</span><span class="pill p-warn">En proceso</span></div>
+      <div style="font-size:13px;color:var(--muted)">Técnico: Carlos Mora · 3,0 h estimadas / 2,5 h reales · Categoría: Mantenimiento Correctivo</div>
+      <table><thead><tr><th>Código</th><th>Repuesto / insumo</th><th>Origen</th><th class="num">Cant.</th></tr></thead>
+      <tbody><tr><td class="mono">FR-VR-110</td><td>Válvula relé de freno</td><td>OC-4588</td><td class="num">1</td></tr>
+      <tr><td class="mono">MN-038</td><td>Manguera neumática 3/8"</td><td>S3-10231</td><td class="num">2</td></tr></tbody></table>
+    </div>
+    <div class="line">
+      <div class="top"><span class="t">2 · Suspensión — soldar soporte de muelle</span><span class="pill p-info">Correctivo</span><span class="pill p-ok">Soldadura · interno</span><span class="pill p-ok">Terminada</span></div>
+      <div style="font-size:13px;color:var(--muted)">Técnico: Diego Vera · 2,0 h / 2,5 h · sin repuestos</div>
+    </div>
+    <div class="line">
+      <div class="top"><span class="t">3 · Motor — rectificar culata</span><span class="pill p-info">Correctivo</span><span class="pill p-warn">Tercero</span><span class="pill p-warn">Cotizando SC-2026-00031</span></div>
+      <div style="font-size:13px;color:var(--muted)">3 ofertas recibidas · requiere aprobación de Gerencia (subtotal > $300) · <b style="color:var(--info)">Ver cuadro comparativo →</b></div>
+    </div>
+    <div class="totals">
+      <div>Líneas<b>3</b>1 terminada</div>
+      <div>Repuestos<b>2 ítems</b>OC-4588 · S3-10231</div>
+      <div>Terceros<b>1</b>en cotización</div>
+      <div class="grand">Horas internas<b>5,0 h</b></div>
+    </div>
+  </div></div>
+  <figcaption><b>OT con varias líneas de trabajo</b>No muestra dinero: registra trabajos, horas, repuestos con su documento S3 u OC, y trabajos de terceros. El botón para cerrar se bloquea mientras haya líneas pendientes, falte el control de calidad o falte el acta de entrega firmada.</figcaption></figure>
+
+  <h3>Cuadro comparativo de cotizaciones · PC</h3>
+  <figure class="mock"><div class="scrollx"><div class="dev desk">
+    <div class="appbar"><div class="ttl">SC-2026-00031 · Rectificación de culata · DC014 · PCQ-3381<small>Solicitada a 3 proveedores · límite de respuesta 22/10/2026</small></div></div>
+    <div class="scr">
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th></th><th>Rectificadora El Pistón</th><th class="pick">Taller Hidalgo</th><th>Motores del Litoral</th></tr></thead>
+        <tbody>
+          <tr><td>Mano de obra</td><td>$280,00</td><td class="pick">$250,00</td><td>$300,00</td></tr>
+          <tr><td>Repuestos</td><td>$120,00</td><td class="pick">$110,00</td><td>$135,00</td></tr>
+          <tr><td>Subtotal</td><td>$400,00</td><td class="pick"><span class="best">$360,00 · menor precio</span></td><td>$435,00</td></tr>
+          <tr><td>IVA 15 %</td><td>$60,00</td><td class="pick">$54,00</td><td>$65,25</td></tr>
+          <tr><td>Total con IVA</td><td><b>$460,00</b></td><td class="pick"><b>$414,00</b></td><td><b>$500,25</b></td></tr>
+          <tr><td>Tiempo de entrega</td><td>4 días</td><td class="pick">7 días</td><td><span class="best">3 días · menor tiempo</span></td></tr>
+          <tr><td>Garantía</td><td>6 meses / 20.000 km</td><td class="pick">3 meses</td><td><span class="best">12 meses · mayor garantía</span></td></tr>
+          <tr><td>Historial</td><td>14 trabajos · 1 retrabajo · 93 % a tiempo</td><td class="pick"><span class="pill p-warn">6 trabajos · 2 retrabajos · 67 % a tiempo</span></td><td>9 trabajos · 0 retrabajos · 100 % a tiempo</td></tr>
+          <tr><td>Calificación</td><td>★★★★☆</td><td class="pick">★★★☆☆</td><td>★★★★★</td></tr>
+          <tr><td>Proforma</td><td>proforma.pdf</td><td class="pick">imagen.jpg</td><td>proforma.pdf</td></tr>
+        </tbody></table></div>
+      <div class="grid2">
+        <div class="panel"><b>Último precio pagado por un trabajo similar:</b> $385,00 + IVA · DC009 · marzo 2026 · Rectificadora El Pistón.<br><b>Ahorro frente a la oferta más alta:</b> $75,00 (subtotal) si se elige Taller Hidalgo.</div>
+        <div class="panel alert"><b>Subtotal sobre $300: aprueba Gerencia</b> (Ana Villacís o Ricardo Mendoza). Si se elige una oferta que no es la más barata, el sistema pide una justificación escrita, por ejemplo: "mayor garantía y sin retrabajos".</div>
+      </div>
+    </div>
+  </div></div>
+  <figcaption><b>Comparación automática</b>Resalta en verde el menor precio, el menor tiempo y la mayor garantía. Al aprobar, la oferta queda vinculada a la línea de trabajo y queda pendiente registrar el n.º de OC y de factura.</figcaption></figure>
+
+  <h3>Acta de entrega · celular &nbsp;y&nbsp; Preventivos · tablet</h3>
+  <div class="mocks">
+    <figure class="mock"><div class="dev phone">
+      <div class="appbar"><div class="ttl">Acta de entrega<small>AE-2026-00139 · DC001 · GSA-4512</small></div></div>
+      <div class="scr">
+        <div class="vs"><table>
+          <thead><tr><th></th><th>Ingreso</th><th>Salida</th></tr></thead>
+          <tbody>
+            <tr><td>Kilometraje</td><td class="mono">412.380</td><td class="mono">412.402</td></tr>
+            <tr><td>Combustible</td><td>1/2</td><td>1/2</td></tr>
+            <tr><td>Botiquín</td><td>Falta</td><td class="good">OK</td></tr>
+            <tr><td>Espejos</td><td>Dañado</td><td>Dañado</td></tr>
+            <tr class="diff"><td>Triángulos</td><td>OK</td><td>Falta</td></tr>
+            <tr><td>Daños</td><td>2 previos</td><td>0 nuevos</td></tr>
+          </tbody></table></div>
+        <div><div class="lbl">Trabajos realizados</div>
+          <div class="field" style="font-size:14px">• Cambio de válvula relé de freno y 2 mangueras.<br>• Soldadura de soporte de muelle trasero.<br>• Culata rectificada por proveedor externo.</div></div>
+        <div><div class="lbl">Recomendaciones</div>
+          <div class="field" style="font-size:14px">Próximo cambio de aceite: 420.000 km (faltan 7.598 km). Revisar espejo derecho.</div></div>
+        <span class="btn">Firmar entrega y cerrar OT</span>
+      </div></div>
+      <figcaption><b>Comparación de ingreso y salida</b>Las diferencias se resaltan en rojo: aquí faltan los triángulos, que habían ingresado en buen estado. El km de salida incluye la prueba de ruta.</figcaption>
+    </figure>
+
+    <figure class="mock"><div class="scrollx"><div class="dev tablet">
+      <div class="appbar"><div class="ttl">Preventivos · semáforo<small>Km actualizado con Hunter al 19/10/2026</small></div></div>
+      <div class="scr">
+        <div class="tblwrap"><table class="sem">
+          <thead><tr><th>Vehículo</th><th>Aceite motor</th><th>Caja y corona</th><th>Embrague</th><th>Frenos</th><th>Llantas (días)</th></tr></thead>
+          <tbody>
+            <tr><td>DC001 · GSA-4512</td><td><span class="sa">faltan 620 km</span></td><td><span class="sv">faltan 11.400</span></td><td><span class="sv">faltan 23.100</span></td><td><span class="sv">recién hecho</span></td><td><span class="sv">210 d</span></td></tr>
+            <tr><td>DC007 · GSA-4590</td><td><span class="sr">vencido +1.150</span></td><td><span class="sv">faltan 8.900</span></td><td><span class="sv">en taller</span></td><td><span class="sa">faltan 1.800</span></td><td><span class="sr">402 d</span></td></tr>
+            <tr><td>DC014 · PCQ-3381</td><td><span class="sv">faltan 6.300</span></td><td><span class="sa">faltan 1.200</span></td><td><span class="sv">faltan 31.000</span></td><td><span class="sv">faltan 20.500</span></td><td><span class="sa">341 d</span></td></tr>
+            <tr><td>DP176 · GSD-2209</td><td><span class="sv">faltan 3.900</span></td><td><span class="sv">faltan 19.800</span></td><td><span class="sr">vencido +600</span></td><td><span class="sv">faltan 12.000</span></td><td><span class="sv">95 d</span></td></tr>
+            <tr><td>DR010 · GBC-7720</td><td><span class="sa">faltan 400</span></td><td><span class="sv">faltan 15.000</span></td><td><span class="sv">faltan 9.800</span></td><td><span class="sv">faltan 27.000</span></td><td><span class="sv">150 d</span></td></tr>
+            <tr><td>MC002 · montacargas</td><td><span class="sv">faltan 80 h</span></td><td><span class="sx">no aplica</span></td><td><span class="sx">no aplica</span></td><td><span class="sv">faltan 300 h</span></td><td><span class="sv">60 d</span></td></tr>
+          </tbody></table></div>
+        <div style="font-size:13px;color:var(--muted)">Verde: sin novedad · Amarillo: falta 10 % o menos del intervalo · Rojo: vencido. Al tocar una celda se abre la OT preventiva con los datos ya llenos.</div>
+      </div>
+    </div></div>
+    <figcaption><b>Semáforo de preventivos</b>Los intervalos se configuran por tipo de vehículo: aceite cada 10.000 km en DC y cada 6.000 km en DP y DR, caja y corona 25.000, embrague 40.000, frenos 35.000 y llantas 365 días. Al cerrar una OT preventiva, el contador de ese sistema vuelve a cero.</figcaption></figure>
+  </div>
+</div></section>
+
+<!-- ================= 5. DICCIONARIO ================= -->
+<section id="diccionario"><div class="wrap">
+  <h2>5 · Diccionario de datos</h2>
+  <p class="lead">Lista cada tabla y cada campo con su tipo y su significado. El repositorio guardará una copia como <code class="mono">docs/DICCIONARIO_DATOS.md</code>, que se actualizará con cada cambio y también irá dentro de la exportación completa.</p>
+  <div class="filter"><label for="buscar" class="lbl" style="margin:0">Buscar</label><input id="buscar" type="search" placeholder="Ej.: kilometraje, proveedor, firma…"><span id="conteo" class="mono" style="color:var(--muted)"></span></div>
+  <div id="dict" class="dict"></div>
+</div></section>
+
+<!-- ================= 6. PLATAFORMA ================= -->
+<section id="plataforma"><div class="wrap">
+  <h2>6 · Cómo se arma (en palabras simples)</h2>
+  <div class="grid2">
+    <div class="panel"><h3>Piezas</h3><ul>
+      <li><b>La aplicación</b> (pantallas): una página web instalable (PWA), publicada gratis en Cloudflare Pages.</li>
+      <li><b>Los datos</b>: base PostgreSQL en Supabase, con usuarios y contraseñas.</li>
+      <li><b>Las firmas y proformas</b>: archivos pequeños en Supabase Storage (gratis). Tu Google Drive recibe el respaldo semanal.</li>
+      <li><b>Las tareas automáticas</b>: en GitHub (gratis). Mantienen despierta la base y hacen el respaldo semanal.</li>
+    </ul></div>
+    <div class="panel"><h3>Sin conexión en el patio</h3><ul>
+      <li>Cada acta se guarda primero dentro de la tablet o el celular.</li>
+      <li>Cuando vuelve la señal, se envía sola. El aviso "SIN SEÑAL · GUARDADO" desaparece.</li>
+      <li>Si se envía dos veces, no se duplica (por el campo <code class="mono">id_local</code>).</li>
+    </ul></div>
+    <div class="panel"><h3>Portabilidad</h3><ul>
+      <li>La lógica de negocio (estados, totales, validaciones) está en el código de la app y en SQL estándar, no en funciones propias de Supabase.</li>
+      <li>Las rutas de archivos siguen siempre el mismo patrón: <code class="mono">2026/10/GSA-4512/AR-2026-00142/firma_conductor.png</code>.</li>
+      <li>La exportación completa incluye CSV y Excel por tabla, el respaldo SQL, el diccionario y el índice de archivos.</li>
+    </ul></div>
+    <div class="panel"><h3>Fases</h3><ul>
+      <li><span class="tag f1">F1</span> Catálogos, usuarios, acta de recepción, OT básica, acta de entrega en PDF, exportación, respaldo y bitácora.</li>
+      <li><span class="tag f2">F2</span> Cotizaciones, llantas, control de calidad y preventivos.</li>
+      <li><span class="tag f3">F3</span> Reportes, Hunter, histórico de SistemasCIA, permisos finos y panel de almacenamiento.</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Diseño v3. Todos los nombres, placas y montos son datos de ejemplo.</div></footer>
+
+<script>
+const T = [
+ // ---------- Configuración y seguridad ----------
+ {n:"configuracion",f:1,m:"Configuración",d:"Parámetros ajustables sin tocar el programa.",c:[
+  ["clave","text, único","Nombre del parámetro: limite_aprobacion_jefe, tolerancia_factura_pct, iva_pct, umbral_labrado_mm, dias_max_llanta, diferencia_max_hunter_km."],
+  ["valor","text","Valor actual, por ejemplo 300, 10, 15, 4, 365, 500."],
+  ["tipo_dato","text","numero | texto | si_no. Sirve para validar al editar."],
+  ["descripcion","text","Explicación para el administrador."]]},
+ {n:"contadores_documento",f:1,m:"Configuración",d:"Lleva la numeración correlativa por tipo y año.",c:[
+  ["tipo_documento","text","AR, AE, OT o SC."],["anio","integer","Año del contador (2026)."],["ultimo_numero","integer","Último número usado. El siguiente sale de sumar 1 de forma segura, sin saltos ni repetidos."]]},
+ {n:"usuarios",f:1,m:"Seguridad",d:"Personas que ingresan al sistema (unas 15).",c:[
+  ["id","uuid","El mismo identificador que tiene en el sistema de inicio de sesión."],["nombre_completo","text","Nombre y apellido."],["correo","text, único","Correo con el que ingresa."],
+  ["rol","text","administrador | jefe_taller | tecnico | gerencia | consulta."],["telefono","text","Celular."],["activo","boolean","Si está en no, no puede ingresar. Nunca se borra."]]},
+ {n:"bitacora_auditoria",f:1,m:"Seguridad",d:"Registro inalterable de quién hizo qué y cuándo.",c:[
+  ["tabla","text","Tabla afectada."],["registro_id","uuid","Registro afectado."],["accion","text","crear | modificar | anular | cambio_estado | aprobar | exportar."],
+  ["datos_antes","jsonb","Valores antes del cambio."],["datos_despues","jsonb","Valores después del cambio."],["usuario_id","uuid → usuarios","Quién lo hizo."],["fecha_hora","timestamptz","Cuándo."]]},
+ {n:"respaldos",f:1,m:"Seguridad",d:"Historial de respaldos semanales y manuales.",c:[
+  ["tipo","text","semanal | manual."],["fecha_hora","timestamptz","Inicio del respaldo."],["destino","text","google_drive | descarga."],["nombre_archivo","text","Ej.: respaldo_2026-10-19.sql.gz"],["bytes","bigint","Tamaño."],["estado","text","ok | error."],["detalle","text","Mensaje de error si lo hubo."]]},
+ // ---------- Catálogos ----------
+ {n:"areas_taller",f:1,m:"Catálogos",d:"Áreas que ejecutan trabajos.",c:[
+  ["nombre","text","Mecánico, Soldadura (internas); Lavadora, Talleres externos (externas)."],["es_externo","boolean","Sí = el trabajo lo hace un proveedor."],["requiere_cotizacion","boolean","Sí = se pide cotización antes de enviar (Talleres externos). No en Lavadora."],["activo","boolean","Visible en listas."]]},
+ {n:"tecnicos",f:1,m:"Catálogos",d:"Personal que ejecuta trabajos, con o sin usuario propio.",c:[
+  ["usuario_id","uuid → usuarios, opcional","Si el técnico ingresa al sistema."],["nombres","text","Nombre completo."],["cedula","text","Cédula."],
+  ["area_taller_id","uuid → areas_taller","Área principal."],["activo","boolean","Disponible para asignar."]]},
+ {n:"tipos_vehiculo",f:1,m:"Catálogos",d:"Cabezal, plataforma, recolector, montacargas.",c:[
+  ["prefijo_codigo","text","DC, DP, DR, MC."],["nombre","text","Cabezal, Plataforma, Recolector, Montacargas."],["unidad_medida","text","km | horas."],["diagrama","text","Nombre del dibujo usado para marcar daños."]]},
+ {n:"configuraciones_ejes",f:1,m:"Catálogos",d:"Distribución de ejes y llantas.",c:[
+  ["nombre","text","Ej.: Cabezal 6x4, Plataforma 4x2, Recolector 6x4."],["numero_ejes","integer","Cantidad de ejes."],["numero_llantas","integer","Llantas montadas, sin contar el repuesto."],["descripcion","text","Notas."]]},
+ {n:"posiciones_llanta",f:2,m:"Llantas",d:"Cada posición de llanta de una configuración. Define el diagrama dinámico.",c:[
+  ["configuracion_ejes_id","uuid → configuraciones_ejes","Configuración a la que pertenece."],["codigo_posicion","text","Ej.: E1-IZQ, E2-DER-EXT, REP-1."],["eje","integer","N.º de eje (1 = delantero). 0 para el repuesto."],
+  ["lado","text","izquierdo | derecho | centro."],["ubicacion","text","simple | interna | externa."],["es_repuesto","boolean","Llanta de emergencia."],["orden","integer","Orden de dibujo."]]},
+ {n:"vehiculos",f:1,m:"Catálogos",d:"La flota.",c:[
+  ["codigo","text, único","Código interno: DC001, DP176."],["placa","text, único","Placa: GSA-4512. Vacía en montacargas."],["tipo_vehiculo_id","uuid → tipos_vehiculo","Tipo."],["configuracion_ejes_id","uuid → configuraciones_ejes","Configuración de ejes."],
+  ["marca","text","Hino, Volvo, Kenworth…"],["modelo","text","Modelo."],["anio","integer","Año de fabricación."],["numero_chasis","text","VIN o chasis."],["numero_motor","text","N.º de motor."],["color","text","Color."],
+  ["conductor_asignado_id","uuid → conductores, opcional","Conductor habitual."],["lectura_actual","numeric(10,1)","Último km u horómetro confirmado."],["lectura_actual_fecha","timestamptz","Fecha de esa lectura."],["estado","text","activo | inactivo | baja."],["observaciones","text","Notas."]]},
+ {n:"conductores",f:1,m:"Catálogos",d:"Conductores que entregan y reciben vehículos (sin usuario).",c:[
+  ["cedula","text, único","Cédula."],["nombres","text","Nombres."],["apellidos","text","Apellidos."],["telefono","text","Celular para enviar el acta por WhatsApp."],["correo","text","Opcional."],["tipo_licencia","text","C, D, E…"],["licencia_vence","date","Vencimiento de la licencia."],["activo","boolean","Disponible."]]},
+ {n:"categorias_gasto",f:1,m:"Catálogos",d:"Clasificación de cada trabajo (sin montos), para contar trabajos por categoría.",c:[
+  ["nombre","text","Mantenimiento Preventivo, Mantenimiento Correctivo, Insumos, Llantas, Otros."],["grupo","text","Mantenimiento | Insumos | Llantas | Otros."],["orden","integer","Orden en reportes."]]},
+ {n:"sistemas",f:1,m:"Catálogos",d:"Sistemas del vehículo.",c:[
+  ["nombre","text","Motor, Caja, Corona, Embrague, Frenos, Suspensión, Dirección, Eléctrico, Llantas, Carrocería, Plataforma, Lavado, Otros."],
+  ["categoria_preventivo_id","uuid → categorias_gasto","Categoría automática cuando el trabajo es preventivo."],["categoria_correctivo_id","uuid → categorias_gasto","Categoría automática cuando es correctivo."],["orden","integer","Orden en listas."],["activo","boolean","Visible."]]},
+ {n:"items_checklist",f:1,m:"Catálogos",d:"Elementos y documentos del checklist de ingreso y salida.",c:[
+  ["nombre","text","Extintor vigente, Triángulos, Matrícula, SOAT…"],["grupo","text","Seguridad | Documentos | Exterior | Carga."],["tipo_vehiculo_id","uuid → tipos_vehiculo, opcional","Vacío = aplica a todos."],["orden","integer","Orden en pantalla."],["activo","boolean","Visible."]]},
+ {n:"repuestos",f:1,m:"Catálogos",d:"Catálogo de repuestos importado desde Excel del otro sistema.",c:[
+  ["codigo","text, único","Código del sistema de origen."],["descripcion","text","Descripción."],["unidad","text","UND, GL, LT, M…"],
+  ["categoria_gasto_id","uuid → categorias_gasto, opcional","Categoría sugerida (ej. Insumos)."],["importacion_id","uuid → importaciones","Carga que lo creó o actualizó."]]},
+ {n:"proveedores",f:2,m:"Cotizaciones",d:"Talleres y proveedores externos.",c:[
+  ["ruc","text, único","RUC (13 dígitos)."],["razon_social","text","Razón social."],["nombre_comercial","text","Nombre comercial."],["contacto","text","Persona de contacto."],["telefono","text","WhatsApp."],["correo","text","Correo."],
+  ["especialidad","text","Rectificadora, latonería, eléctrico, alineación…"],["condiciones_pago","text","Contado, 30 días…"],["calificacion","integer 1–5","Calificación manual."],["activo","boolean","Disponible."]]},
+ {n:"niveles_aprobacion",f:2,m:"Cotizaciones",d:"Quién aprueba según el monto.",c:[
+  ["monto_desde","numeric(12,2)","Desde (incluido)."],["monto_hasta","numeric(12,2)","Hasta (incluido). Vacío = sin tope."],["rol_aprobador","text","jefe_taller (0–300) | gerencia (más de 300)."],["aprobaciones_requeridas","integer","Cuántas personas deben aprobar (1)."]]},
+ // ---------- Archivos ----------
+ {n:"archivos",f:1,m:"Archivos",d:"Índice de firmas y proformas. La base solo guarda la ruta, nunca el archivo.",c:[
+  ["tipo","text","firma | proforma."],["categoria","text","firma_conductor | firma_recibe | firma_entrega | proforma."],
+  ["ruta","text","Ruta estándar: 2026/10/GSA-4512/AR-2026-00142/firma_conductor.png"],
+  ["tipo_mime","text","image/png, image/webp, application/pdf."],["bytes","integer","Tamaño."],["tabla_origen","text","Tabla dueña del archivo."],["registro_origen_id","uuid","Registro dueño del archivo."],["firmado_en","timestamptz","Fecha y hora de la firma o de la carga."],["usuario_id","uuid → usuarios","Usuario que registró."]]},
+ // ---------- Recepción ----------
+ {n:"actas_recepcion",f:1,m:"Acta de recepción",d:"Ingreso del vehículo al taller.",c:[
+  ["numero","text, único","AR-2026-00001."],["vehiculo_id","uuid → vehiculos","Vehículo."],["conductor_id","uuid → conductores","Conductor que entrega."],["recibido_por","uuid → usuarios","Técnico o jefe que recibe."],["fecha_hora","timestamptz","Automática al iniciar."],
+  ["lectura","numeric(10,1)","Km u horómetro de ingreso."],["lectura_hunter","numeric(10,1)","Km estimado por Hunter en ese momento (referencia)."],["combustible","text","E | 1/4 | 1/2 | 3/4 | F."],
+  ["motivo_ingreso","text","preventivo | correctivo | llantas | siniestro | inspeccion."],["falla_reportada","text","Lo que dice el conductor."],["observaciones","text","Notas de quien recibe."],
+  ["firma_conductor_id","uuid → archivos","PNG de la firma."],["firma_recibe_id","uuid → archivos","PNG de la firma."],["estado","text","borrador | firmada | anulada."]]},
+ {n:"checklist_recepcion",f:1,m:"Acta de recepción",d:"Resultado de cada ítem del checklist al ingresar.",c:[
+  ["acta_recepcion_id","uuid → actas_recepcion","Acta."],["item_checklist_id","uuid → items_checklist","Ítem."],["resultado","text","ok | falta | danado."],["observacion","text","Obligatoria si no es ok."]]},
+ {n:"danos_vehiculo",f:1,m:"Acta de recepción",d:"Marcas en el diagrama de daños.",c:[
+  ["vehiculo_id","uuid → vehiculos","Vehículo."],["acta_recepcion_id","uuid → actas_recepcion, opcional","Acta donde se detectó al ingresar."],["acta_entrega_id","uuid → actas_entrega, opcional","Acta donde se detectó al salir."],
+  ["numero_marca","integer","N.º visible en el dibujo."],["vista","text","frontal | posterior | izquierda | derecha."],["posicion_x","numeric(5,4)","Horizontal de 0 a 1 (independiente del tamaño de pantalla)."],["posicion_y","numeric(5,4)","Vertical de 0 a 1."],
+  ["tipo_dano","text","golpe | rayon | rotura | oxidacion | otro."],["descripcion","text","Detalle escrito del daño."],["situacion","text","preexistente | nuevo | reparado."]]},
+ // ---------- OT ----------
+ {n:"ordenes_trabajo",f:1,m:"Orden de trabajo",d:"La OT, creada desde el acta de recepción.",c:[
+  ["numero","text, único","OT-2026-00001."],["acta_recepcion_id","uuid → actas_recepcion, único","Acta que la originó."],["vehiculo_id","uuid → vehiculos","Heredado del acta."],["lectura","numeric(10,1)","Heredada del acta."],["motivo_ingreso","text","Heredado del acta."],
+  ["prioridad","text","alta | media | baja."],["inmovilizado","boolean","El vehículo no puede operar."],["estado","text","recepcion | diagnostico | cotizando | esperando_repuestos | en_reparacion | control_calidad | listo_entrega | entregado."],
+  ["diagnostico","text","Diagnóstico del jefe de taller."],["jefe_taller_id","uuid → usuarios","Responsable."],["fecha_apertura","timestamptz","Al crear."],["fecha_cierre","timestamptz","Al firmar el acta de entrega."],
+  ["horas_parado","numeric(10,1)","Recepción → entrega. Se calcula al cerrar."],["total_horas_internas","numeric(10,1)","Suma de horas de técnicos. Se calcula al cerrar."]]},
+ {n:"historial_estados_ot",f:1,m:"Orden de trabajo",d:"Cada cambio de estado de la OT. Sirve para medir el tiempo en cada estado.",c:[
+  ["orden_trabajo_id","uuid → ordenes_trabajo","OT."],["estado_anterior","text","Estado de donde sale."],["estado_nuevo","text","Estado al que entra."],["fecha_hora","timestamptz","Cuándo."],["usuario_id","uuid → usuarios","Quién."],["comentario","text","Opcional."]]},
+ {n:"lineas_trabajo",f:1,m:"Orden de trabajo",d:"Cada trabajo dentro de una OT.",c:[
+  ["orden_trabajo_id","uuid → ordenes_trabajo","OT."],["numero_linea","integer","1, 2, 3…"],["sistema_id","uuid → sistemas","Sistema intervenido."],["tipo_mantenimiento","text","preventivo | correctivo."],
+  ["area_taller_id","uuid → areas_taller","Mecánico, Soldadura, Lavadora o Externos."],["ejecutor","text","interno | tercero."],["descripcion","text","Qué se hace."],["tecnico_id","uuid → tecnicos, opcional","Responsable."],
+  ["horas_estimadas","numeric(10,1)","Estimado."],["estado","text","pendiente | en_proceso | esperando_repuestos | en_tercero | terminada."],
+  ["categoria_gasto_id","uuid → categorias_gasto","Automática según sistema y tipo."],["categoria_manual","boolean","Sí = alguien la cambió a mano."],["proveedor_id","uuid → proveedores, opcional","Si es tercero (F2)."],["respuesta_aprobada_id","uuid → respuestas_cotizacion, opcional","Cotización ganadora (F2)."]]},
+ {n:"registros_horas",f:1,m:"Orden de trabajo",d:"Horas trabajadas por técnico. Base de la productividad.",c:[
+  ["linea_trabajo_id","uuid → lineas_trabajo","Línea."],["tecnico_id","uuid → tecnicos","Técnico."],["fecha","date","Día trabajado."],["horas","numeric(10,1)","Horas."],["nota","text","Avance."]]},
+ {n:"repuestos_linea",f:1,m:"Orden de trabajo",d:"Repuestos e insumos usados. Sin montos.",c:[
+  ["linea_trabajo_id","uuid → lineas_trabajo","Línea."],["repuesto_id","uuid → repuestos, opcional","Del catálogo, si existe."],["codigo","text","Código (copiado)."],["descripcion","text","Descripción (copiada)."],
+  ["cantidad","numeric(10,2)","Cantidad."],["unidad","text","Unidad."],
+  ["origen","text","bodega_s3 | orden_compra | tercero."],["numero_documento","text","N.º de S3 u OC."],["categoria_gasto_id","uuid → categorias_gasto","Normalmente la de la línea; Insumos para aceites, filtros, etc."]]},
+ {n:"comentarios_ot",f:1,m:"Orden de trabajo",d:"Comentarios internos.",c:[
+  ["orden_trabajo_id","uuid → ordenes_trabajo","OT."],["usuario_id","uuid → usuarios","Autor."],["fecha_hora","timestamptz","Cuándo."],["texto","text","Comentario."]]},
+ // ---------- Entrega ----------
+ {n:"actas_entrega",f:1,m:"Acta de entrega",d:"Salida del vehículo del taller.",c:[
+  ["numero","text, único","AE-2026-00001."],["orden_trabajo_id","uuid → ordenes_trabajo, único","OT que cierra."],["acta_recepcion_id","uuid → actas_recepcion","Para comparar."],["vehiculo_id","uuid → vehiculos","Vehículo."],
+  ["fecha_hora","timestamptz","Salida."],["lectura","numeric(10,1)","Km u horómetro de salida."],["combustible","text","E | 1/4 | 1/2 | 3/4 | F."],["conductor_id","uuid → conductores","Conductor que recibe."],["entregado_por","uuid → usuarios","Jefe de taller."],
+  ["resumen_trabajos","text","Lo que se hizo."],["recomendaciones","text","Recomendaciones y próximos mantenimientos."],["firma_conductor_id","uuid → archivos","PNG."],["firma_entrega_id","uuid → archivos","PNG."],["estado","text","borrador | firmada | anulada."]]},
+ {n:"checklist_entrega",f:1,m:"Acta de entrega",d:"Resultado del checklist al salir.",c:[
+  ["acta_entrega_id","uuid → actas_entrega","Acta."],["item_checklist_id","uuid → items_checklist","Ítem."],["resultado","text","ok | falta | danado."],["observacion","text","Obligatoria si no es ok."]]},
+ // ---------- Cotizaciones ----------
+ {n:"solicitudes_cotizacion",f:2,m:"Cotizaciones",d:"Pedido de cotización a terceros.",c:[
+  ["numero","text, único","SC-2026-00001."],["orden_trabajo_id","uuid → ordenes_trabajo","OT."],["linea_trabajo_id","uuid → lineas_trabajo","Línea que la origina."],["vehiculo_id","uuid → vehiculos","Vehículo."],["lectura","numeric(10,1)","Km."],
+  ["sistema_id","uuid → sistemas","Sistema."],["descripcion_trabajo","text","Qué se necesita."],["incluye_repuestos","text","si | no | parcial."],["fecha_limite","date","Límite de respuesta."],
+  ["estado","text","borrador | enviada | en_comparacion | aprobada | rechazada."]]},
+ {n:"solicitud_proveedores",f:2,m:"Cotizaciones",d:"A qué proveedores se envió cada solicitud.",c:[
+  ["solicitud_cotizacion_id","uuid → solicitudes_cotizacion","Solicitud."],["proveedor_id","uuid → proveedores","Proveedor."],["medio_envio","text","whatsapp | correo."],["enviado_en","timestamptz","Cuándo."]]},
+ {n:"respuestas_cotizacion",f:2,m:"Cotizaciones",d:"Oferta de cada proveedor. Aquí sí hay IVA.",c:[
+  ["solicitud_cotizacion_id","uuid → solicitudes_cotizacion","Solicitud."],["proveedor_id","uuid → proveedores","Proveedor."],["fecha_respuesta","date","Fecha."],
+  ["valor_mano_obra","numeric(12,2)","Mano de obra."],["valor_repuestos","numeric(12,2)","Repuestos."],["subtotal","numeric(12,2)","Suma sin IVA."],["porcentaje_iva","numeric(5,2)","15,00."],["valor_iva","numeric(12,2)","IVA."],["total_con_iva","numeric(12,2)","Total."],
+  ["dias_entrega","integer","Plazo ofrecido."],["garantia_km","integer","Garantía en km."],["garantia_meses","integer","Garantía en meses."],["valida_hasta","date","Validez de la oferta."],["proforma_id","uuid → archivos, opcional","PDF o imagen de la proforma (≤300 KB)."],["observaciones","text","Notas."]]},
+ {n:"aprobaciones_cotizacion",f:2,m:"Cotizaciones",d:"Decisión de aprobación por nivel.",c:[
+  ["solicitud_cotizacion_id","uuid → solicitudes_cotizacion","Solicitud."],["respuesta_cotizacion_id","uuid → respuestas_cotizacion","Oferta elegida."],["nivel_requerido","text","jefe_taller | gerencia."],["monto_evaluado","numeric(12,2)","Subtotal comparado contra el límite."],
+  ["decision","text","aprobada | rechazada."],["aprobado_por","uuid → usuarios","Quién decide."],["fecha_hora","timestamptz","Cuándo."],["era_la_mas_barata","boolean","Si la elegida era la de menor subtotal."],["justificacion","text","Obligatoria si no era la más barata."]]},
+ {n:"trabajos_externos",f:2,m:"Cotizaciones",d:"Seguimiento del trabajo aprobado al proveedor.",c:[
+  ["linea_trabajo_id","uuid → lineas_trabajo","Línea."],["respuesta_cotizacion_id","uuid → respuestas_cotizacion","Oferta aprobada."],["proveedor_id","uuid → proveedores","Proveedor."],["que_se_envia","text","vehiculo | pieza."],
+  ["fecha_salida","date","Salida al proveedor."],["fecha_prometida","date","Fecha comprometida."],["fecha_retorno","date","Regreso real."],["numero_orden_compra","text","N.º de OC."],["numero_factura","text","N.º de factura del proveedor."],
+  ["factura_subtotal","numeric(12,2)","Subtotal facturado."],["factura_total","numeric(12,2)","Total facturado con IVA."],["diferencia_pct","numeric(6,2)","Factura vs. cotizado. Alerta si supera el 10 %."],
+  ["control_calidad_ok","boolean","Revisión al regresar."],["es_retrabajo","boolean","Repite un trabajo en garantía."],["trabajo_original_id","uuid → trabajos_externos, opcional","Trabajo que se repite."]]},
+ // ---------- Llantas ----------
+ {n:"llantas",f:2,m:"Llantas",d:"Cada llanta física.",c:[
+  ["codigo_llanta","text, único","N.º de serie o código marcado."],["marca","text","Marca."],["diseno","text","Diseño o modelo."],["medida","text","Ej.: 295/80R22.5."],["tipo","text","nueva | reencauche."],
+  ["labrado_inicial_mm","numeric(4,1)","Profundidad nueva."],["fecha_compra","date","Compra."],["estado","text","bodega | instalada | reencauche | desecho."]]},
+ {n:"instalaciones_llanta",f:2,m:"Llantas",d:"Dónde estuvo cada llanta y cuándo. Una rotación es un retiro más una nueva instalación.",c:[
+  ["llanta_id","uuid → llantas","Llanta."],["vehiculo_id","uuid → vehiculos","Vehículo."],["posicion_llanta_id","uuid → posiciones_llanta","Posición."],["fecha_instalacion","date","Montaje."],["lectura_instalacion","numeric(10,1)","Km al montar."],
+  ["fecha_retiro","date","Vacío = sigue montada."],["lectura_retiro","numeric(10,1)","Km al retirar."],["motivo_retiro","text","rotacion | cambio | pinchazo | desgaste | reencauche | desecho."],["orden_trabajo_id","uuid → ordenes_trabajo","OT donde se hizo."]]},
+ {n:"inspecciones_llanta",f:2,m:"Llantas",d:"Medición de labrado y presión.",c:[
+  ["llanta_id","uuid → llantas","Llanta."],["vehiculo_id","uuid → vehiculos","Vehículo."],["posicion_llanta_id","uuid → posiciones_llanta","Posición."],["fecha","date","Fecha."],
+  ["labrado_mm","numeric(4,1)","Profundidad medida."],["presion_psi","integer","Presión."],["estado","text","bueno | regular | malo."],["orden_trabajo_id","uuid → ordenes_trabajo, opcional","OT."]]},
+ // ---------- Calidad ----------
+ {n:"items_control_calidad",f:2,m:"Control de calidad",d:"Puntos de verificación por sistema.",c:[
+  ["sistema_id","uuid → sistemas","Sistema."],["descripcion","text","Ej. Frenos: sin fugas de aire; presión estable 120 psi."],["orden","integer","Orden."],["activo","boolean","Visible."]]},
+ {n:"controles_calidad",f:2,m:"Control de calidad",d:"Verificación final de la OT.",c:[
+  ["orden_trabajo_id","uuid → ordenes_trabajo","OT."],["aprobado_por","uuid → usuarios","Debe ser distinto de los técnicos de la OT."],["fecha_hora","timestamptz","Cuándo."],["resultado","text","aprobado | rechazado."],
+  ["hubo_prueba_ruta","boolean","Si se hizo prueba de ruta."],["km_salida_prueba","numeric(10,1)","Km al salir."],["km_llegada_prueba","numeric(10,1)","Km al volver."],["observaciones","text","Notas."]]},
+ {n:"resultados_control_calidad",f:2,m:"Control de calidad",d:"Resultado de cada punto verificado.",c:[
+  ["control_calidad_id","uuid → controles_calidad","Control."],["item_control_calidad_id","uuid → items_control_calidad","Punto."],["linea_trabajo_id","uuid → lineas_trabajo","Línea revisada."],["resultado","text","ok | no_ok | no_aplica."],["observacion","text","Notas."]]},
+ // ---------- Preventivos ----------
+ {n:"planes_preventivos",f:2,m:"Preventivos",d:"Intervalos por tipo de vehículo.",c:[
+  ["tipo_vehiculo_id","uuid → tipos_vehiculo","Tipo."],["sistema_id","uuid → sistemas","Sistema."],["nombre","text","Aceite de motor, Caja y corona, Kit de embrague, Frenos, Llantas."],
+  ["intervalo_km","integer","10.000 (DC) / 6.000 (DP-DR), 25.000, 40.000, 35.000."],["intervalo_horas","integer","Para montacargas."],["intervalo_dias","integer","365 para llantas."],["aviso_pct","integer","Pasa a amarillo al quedar este % (10)."],["activo","boolean","Vigente."]]},
+ {n:"ultimo_servicio_preventivo",f:2,m:"Preventivos",d:"Último servicio hecho por vehículo y plan. Se actualiza al cerrar la OT.",c:[
+  ["vehiculo_id","uuid → vehiculos","Vehículo."],["plan_preventivo_id","uuid → planes_preventivos","Plan."],["fecha","date","Fecha del último servicio."],["lectura","numeric(10,1)","Km u horas en ese servicio."],["orden_trabajo_id","uuid → ordenes_trabajo, opcional","OT que lo actualizó."]]},
+ // ---------- Importación ----------
+ {n:"importaciones",f:3,m:"Importación",d:"Historial de cada archivo Excel cargado.",c:[
+  ["tipo","text","hunter | vehiculos | conductores | tecnicos | proveedores | repuestos | historico."],["nombre_archivo","text","Nombre del Excel."],["filas_leidas","integer","Total."],["filas_ok","integer","Cargadas."],["filas_error","integer","Rechazadas."],["detalle_errores","text","Fila y motivo."],["usuario_id","uuid → usuarios","Quién cargó."],["fecha_hora","timestamptz","Cuándo."]]},
+ {n:"kilometraje_diario",f:3,m:"Importación",d:"Km por día desde Hunter. Una fila por vehículo y día; si se carga dos veces, se reemplaza.",c:[
+  ["vehiculo_id","uuid → vehiculos","Vehículo (de CODIGO--PLACA)."],["fecha","date","Año/Mes/Día del reporte. Único con vehiculo_id."],["km_recorridos","numeric(10,1)","Km del día."],["importacion_id","uuid → importaciones","Carga de origen."]]},
+ {n:"historico_sistemascia",f:3,m:"Importación",d:"Campos clave de las ~14.700 OT del sistema anterior.",c:[
+  ["numero_ot_original","text","N.º en SistemasCIA."],["fecha","date","Fecha."],["vehiculo_id","uuid → vehiculos, opcional","Si se pudo emparejar."],["codigo_vehiculo_original","text","Tal como venía."],["placa_original","text","Tal como venía."],
+  ["lectura","numeric(10,1)","Km."],["sistema_texto","text","Sistema tal como venía."],["sistema_id","uuid → sistemas, opcional","Sistema emparejado."],["tipo_mantenimiento","text","preventivo | correctivo | desconocido."],["importacion_id","uuid → importaciones","Carga."]]},
+ {n:"uso_almacenamiento",f:3,m:"Importación",d:"Registro diario del espacio usado, para el panel y la proyección.",c:[
+  ["fecha","date","Día."],["bytes_base_datos","bigint","Tamaño de la base."],["bytes_archivos","bigint","Firmas y proformas en Supabase Storage."],["cantidad_archivos","integer","Total de archivos."]]}
+];
+
+const fl = f => `<span class="tag f${f}">F${f}</span>`;
+document.querySelector("#tablaResumen tbody").innerHTML = T.map(t =>
+  `<tr><td><code>${t.n}</code></td><td>${fl(t.f)}</td><td>${t.m}</td><td>${t.d}</td></tr>`).join("");
+
+const dict = document.getElementById("dict"), q = document.getElementById("buscar"), cnt = document.getElementById("conteo");
+function render(term){
+  term = (term||"").toLowerCase().trim();
+  let html = "", lastM = "", shown = 0, campos = 0;
+  for (const t of T){
+    const rows = t.c.filter(c => !term || t.n.includes(term) || c.join(" ").toLowerCase().includes(term));
+    if (!rows.length) continue;
+    shown++; campos += rows.length;
+    if (t.m !== lastM){ html += `<div class="modhead">${t.m}</div>`; lastM = t.m; }
+    html += `<div class="t"><header><code>${t.n}</code>${fl(t.f)}<span class="d">${t.d}</span></header><div class="tblwrap"><table>
+      <thead><tr><th style="width:24%">Campo</th><th style="width:22%">Tipo</th><th>Significado</th></tr></thead><tbody>
+      ${rows.map(c=>`<tr><td><code>${c[0]}</code></td><td class="mono">${c[1]}</td><td>${c[2]}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+  dict.innerHTML = html || `<div class="panel">No hay campos que coincidan con "${term}".</div>`;
+  cnt.textContent = `${shown} tablas · ${campos} campos`;
+}
+q.addEventListener("input", e => render(e.target.value));
+render("");
+document.getElementById("ntab").textContent = T.length;
+</script>
